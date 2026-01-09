@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kail's Universe</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Jura:wght@300;500;700&family=Great+Vibes&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div id="start-screen">
+    <div id="stars-container"></div>
+    <div class="start-text">CHẠM ĐỂ BẮT ĐẦU</div>
+  </div>
+
+  <div class="overlay"></div>
+
+  <audio id="bg-music" loop preload="auto">
+    <!-- Giữ MP4 như Kail đang có, nhưng type nên là audio/mp4 -->
+    <source src="nhac_nen.mp4" type="audio/mp4">
+  </audio>
+
+  <section id="page-home" class="active">
+    <div id="home-content">
+      <div class="title-container">
+        <h1 class="game-title">ĐỘC DƯỢC NGỌT NGÀO</h1>
+        <p class="subtitle">"Giữa ranh giới của tình yêu và sự chiếm hữu"</p>
+      </div>
+      <div class="menu-container">
+        <button class="menu-btn" onclick="goToPage('page-about')">Giới Thiệu</button>
+        <button class="menu-btn" onclick="goToPage('page-characters')">Hồ Sơ Nhân Vật</button>
+        <button class="menu-btn" onclick="goToPage('page-gallery')">Thư Viện Ảnh</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="page-about">
+    <div class="scrollable-page">
+      <div onclick="goToPage('page-home')" class="back-btn">← Quay Lại</div>
+      <div class="about-wrapper">
+        <div class="profile-card-admin">
+          <img src="avatar_admin.png" alt="Admin" class="avatar-admin">
+          <h1 style="font-size:3rem; margin:0;">KAILYUKI</h1>
+          <span style="color:#f33; font-family:'Great Vibes'; font-size:2rem;">The Architect</span>
+          <p style="margin-top:20px; font-style:italic; color:#ddd;">
+            "Chào mừng đến với thế giới do tôi kiến tạo. Nơi ranh giới giữa thực và ảo bị xóa nhòa."
+          </p>
+          <div class="social-links">
+            <a href="#" class="social-btn">Facebook</a>
+            <a href="https://discord.com/users/383996413182214144" target="_blank" class="social-btn" rel="noreferrer">Discord</a>
+            <a href="https://www.tiktok.com/@kailyuki.satsuki" target="_blank" class="social-btn" rel="noreferrer">TikTok</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="page-characters">
+    <div class="scrollable-page">
+      <div id="mode-selection">
+        <div onclick="goToPage('page-home')" class="back-btn">← Về Trang Chủ</div>
+        <div class="mode-card mode-nsfw" onclick="selectMode('NSFW')">
+          <div class="mode-title">NSFW</div>
+          <div class="mode-desc">Dark Desires & 18+</div>
+        </div>
+        <div class="mode-card mode-sfw" onclick="selectMode('SFW')">
+          <div class="mode-title">SFW</div>
+          <div class="mode-desc">Pure Love & Safe</div>
+        </div>
+      </div>
+
+      <div id="char-content">
+        <div onclick="backToSelection()" class="back-btn">← Chọn lại chế độ</div>
+
+        <div class="char-header">
+          <h1 id="char-title" style="font-size:3rem;">DANH SÁCH</h1>
+
+          <div class="search-wrap">
+            <input type="text" id="search-inp" class="search-inp" placeholder="Tìm tên hoặc tag..." onkeyup="searchChar()">
+            <button class="filter-btn" onclick="toggleTags(this)">
+              <svg viewBox="0 0 24 24"><path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg>
+            </button>
+          </div>
+
+          <div class="filter-area" id="filter-tags-area"></div>
+        </div>
+
+        <div class="char-grid" id="char-grid"></div>
+      </div>
+    </div>
+  </section>
+
+  <div id="char-popup" onclick="closePopup()">
+    <div class="popup-content" onclick="event.stopPropagation()">
+      <span class="close-btn" onclick="closePopup()">&times;</span>
+
+      <div class="popup-flex-container">
+        <div class="popup-left-col">
+          <div class="popup-avatar-wrapper">
+            <img id="p-img" src="" alt="Char Image">
+            <div id="p-label" class="p-label">Label</div>
+          </div>
+        </div>
+
+        <div class="popup-right-col">
+          <div class="popup-header-info">
+            <h2 id="p-name">NAME</h2>
+            <div id="p-sub">Subtitle Description</div>
+          </div>
+
+          <div id="p-tags-container" class="popup-tags"></div>
+
+          <div class="popup-quote-box">
+            <p id="p-quote">"Quote content"</p>
+          </div>
+
+          <div class="popup-expand-section">
+            <button id="btn-expand" class="expand-toggle-btn" onclick="toggleExpandInfo()">
+              <span class="plus-icon">+</span> Xem chi tiết hồ sơ
+            </button>
+            <div id="p-expand-content" class="expand-content-box"></div>
+          </div>
+
+          <div class="popup-actions-footer">
+            <a id="link-mirai" href="#" target="_blank" rel="noreferrer" class="platform-btn">MiraiMind ↗</a>
+            <a id="link-doki" href="#" target="_blank" rel="noreferrer" class="platform-btn">Doki Chat ↗</a>
+            <a id="link-lovey" href="#" target="_blank" rel="noreferrer" class="platform-btn">Lovey Dovey ↗</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <section id="page-gallery">
+    <div class="scrollable-page">
+      <div onclick="goToPage('page-home')" class="back-btn">← Quay Lại</div>
+      <div id="gallery-wrapper">
+        <h1 style="font-size:3rem; margin-bottom:20px;">THƯ VIỆN ẢNH</h1>
+        <div class="gallery-tabs" id="gallery-tabs-container"></div>
+        <div class="gallery-grid" id="gallery-grid"></div>
+      </div>
+    </div>
+  </section>
+
+  <div id="lightbox" onclick="closeLightbox()">
+    <span id="lb-close">&times;</span>
+    <img id="lb-img" src="" onclick="event.stopPropagation()">
+  </div>
+
+  <script src="data.js"></script>
+  <script src="logic.js"></script>
+</body>
+</html>
