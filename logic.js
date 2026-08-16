@@ -23,6 +23,15 @@ function goToPage(pageId) {
 
 let currentList = [];
 
+// Giữ layout đẹp ngay cả khi một ảnh nhân vật/thư viện chưa được tải lên.
+function armImageFallback(img, owner) {
+  if (!img) return;
+  img.addEventListener('error', function () {
+    img.style.opacity = '0';
+    if (owner) owner.classList.add('is-placeholder');
+  }, { once: true });
+}
+
 // 2. Quay lại chọn chế độ
 function backToSelection() {
   const content = document.getElementById('char-content');
@@ -127,6 +136,12 @@ function renderList(list) {
         </div>
       </div>
     `;
+    const cardImg = div.querySelector('.c-img');
+    if (cardImg) {
+      cardImg.loading = 'lazy';
+      cardImg.decoding = 'async';
+      armImageFallback(cardImg, div);
+    }
     grid.appendChild(div);
   });
 }
@@ -142,7 +157,12 @@ function openPopup(char) {
   if (expandContent) expandContent.classList.remove('show');
 
   // Fill data
-  document.getElementById('p-img').src = char.img || '';
+  const popupImg = document.getElementById('p-img');
+  const popupImgWrap = popupImg.closest('.popup-avatar-wrapper');
+  popupImgWrap.classList.remove('is-placeholder');
+  popupImg.style.opacity = '1';
+  popupImg.src = char.img || '';
+  armImageFallback(popupImg, popupImgWrap);
   document.getElementById('p-label').innerText = char.label || '';
   document.getElementById('p-name').innerText = char.name || '';
   document.getElementById('p-sub').innerText = char.sub || '';
@@ -234,7 +254,8 @@ function renderGallery(filterMode) {
     div.className = 'g-item';
     div.style.animation = `fadeInPage 0.5s ease forwards ${i * 0.1}s`;
     div.onclick = function () { openLightbox(item.src); };
-    div.innerHTML = `<img src="${item.src}" alt="Gallery Image">`;
+    div.innerHTML = `<img src="${item.src}" alt="Gallery Image" loading="lazy" decoding="async">`;
+    armImageFallback(div.querySelector('img'), div);
     grid.appendChild(div);
   });
 }
@@ -280,3 +301,9 @@ for (let i = 0; i < 150; i++) {
   s.style.animationDelay = Math.random() * 5 + 's';
   sc.appendChild(s);
 }
+
+document.addEventListener('keydown', function (event) {
+  if (event.key !== 'Escape') return;
+  closePopup();
+  closeLightbox();
+});
