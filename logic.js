@@ -56,6 +56,30 @@ const labels = {
   nsfw: { name: "NSFW 18+", dose: "Dark Dose" }
 };
 
+function createFallingLight() {
+  document.querySelectorAll(".light-fall").forEach((layer, layerIndex) => {
+    const particleCount = window.innerWidth < 700 ? 24 : 34;
+    const fragment = document.createDocumentFragment();
+
+    for (let index = 0; index < particleCount; index += 1) {
+      const particle = document.createElement("span");
+      const isStreak = index % 7 === 0;
+      const isIvory = !isStreak && index % 3 === 0;
+      particle.className = isStreak ? "light-streak" : `light-mote${isIvory ? " light-mote-ivory" : ""}`;
+      particle.style.setProperty("--x", `${(index * 37 + layerIndex * 13) % 101}%`);
+      particle.style.setProperty("--size", `${3 + ((index * 5) % 5)}px`);
+      particle.style.setProperty("--duration", `${8 + ((index * 7) % 10)}s`);
+      particle.style.setProperty("--delay", `${-((index * 1.17 + layerIndex * 2.3) % 16)}s`);
+      particle.style.setProperty("--drift", `${-52 + ((index * 23) % 105)}px`);
+      fragment.appendChild(particle);
+    }
+
+    layer.replaceChildren(fragment);
+  });
+}
+
+createFallingLight();
+
 function escapeHtml(value = "") {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -272,7 +296,3 @@ ui.modal.addEventListener("click", (event) => {
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closePlot();
 });
-
-if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-  document.body.classList.add("reduce-motion");
-}
