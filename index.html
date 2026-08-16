@@ -3,156 +3,181 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#050506">
-  <meta name="description" content="Cổng giới thiệu thế giới và nhân vật của Độc Dược Ngọt Ngào.">
-  <title>Độc Dược Ngọt Ngào 2.0</title>
+  <meta name="theme-color" content="#0a0506">
+  <meta name="description" content="Độc Dược Ngọt Ngào Plot Archive — kho lưu trữ plot và open world của Delicious Poison.">
+  <title>Độc Dược Ngọt Ngào Plot Archive | Delicious Poison</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Jura:wght@300;500;700&family=Great+Vibes&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Tới nội dung chính</a>
 
-  <div id="start-screen">
-    <div id="stars-container"></div>
-    <div class="start-text">CHẠM ĐỂ BẮT ĐẦU</div>
+  <div class="site-atmosphere" aria-hidden="true">
+    <div class="grain"></div>
+    <span class="moth moth-one">🦋</span>
+    <span class="moth moth-two">🦋</span>
+    <span class="moth moth-three">🦋</span>
   </div>
 
-  <div class="overlay"></div>
-
-  <audio id="bg-music" loop preload="auto">
-    <!-- Giữ MP4 như Kail đang có, nhưng type nên là audio/mp4 -->
-    <source src="nhac_nen.mp4" type="audio/mp4">
-  </audio>
-
-  <section id="page-home" class="active">
-    <div id="home-content">
-      <div class="title-container">
-        <h1 class="game-title">ĐỘC DƯỢC NGỌT NGÀO</h1>
-        <p class="subtitle">"Giữa ranh giới của tình yêu và sự chiếm hữu"</p>
-      </div>
-      <div class="menu-container">
-        <button class="menu-btn" onclick="goToPage('page-about')">Giới Thiệu</button>
-        <button class="menu-btn" onclick="goToPage('page-characters')">Hồ Sơ Nhân Vật</button>
-        <button class="menu-btn" onclick="goToPage('page-gallery')">Thư Viện Ảnh</button>
-      </div>
+  <section id="entry-gate" class="entry-gate" aria-labelledby="gate-title">
+    <div class="gate-brand">ĐỘC DƯỢC NGỌT NGÀO</div>
+    <div class="gate-content">
+      <div class="sigil" aria-hidden="true"><span>🦋</span></div>
+      <p class="gate-kicker">Delicious Poison</p>
+      <h1 id="gate-title">Enter the<br><em>Archive</em></h1>
+      <p class="gate-copy">Mở kho lưu trữ những thế giới được niêm phong<br> bằng mật ngọt và nọc độc.</p>
+      <button id="enter-button" class="glow-button" type="button">MỞ KHO LƯU TRỮ</button>
+      <p class="master-slogan">Every sweetness leaves a mark.</p>
     </div>
+    <button id="reduce-motion-gate" class="motion-control" type="button">GIẢM HIỆU ỨNG</button>
   </section>
 
-  <section id="page-about">
-    <div class="scrollable-page">
-      <div onclick="goToPage('page-home')" class="back-btn">← Quay Lại</div>
-      <div class="about-wrapper">
-        <div class="profile-card-admin">
-          <img src="avatar_admin.png" alt="Admin" class="avatar-admin">
-          <h1 style="font-size:3rem; margin:0;">KAILYUKI</h1>
-          <span style="color:#f33; font-family:'Great Vibes'; font-size:2rem;">The Architect</span>
-          <p style="margin-top:20px; font-style:italic; color:#ddd;">
-            "Chào mừng đến với thế giới do tôi kiến tạo. Nơi ranh giới giữa thực và ảo bị xóa nhòa."
-          </p>
-          <div class="social-links">
-            <a href="#" class="social-btn">Facebook</a>
-            <a href="https://discord.com/users/383996413182214144" target="_blank" class="social-btn" rel="noreferrer">Discord</a>
-            <a href="https://www.tiktok.com/@kailyuki.satsuki" target="_blank" class="social-btn" rel="noreferrer">TikTok</a>
+  <div id="archive-app" class="archive-app" aria-hidden="true">
+    <header class="topbar">
+      <a class="brand-lockup" href="#archive" aria-label="Độc Dược Ngọt Ngào Plot Archive">
+        <span class="brand-orb">🦋</span>
+        <span>
+          <strong>Độc Dược Ngọt Ngào</strong>
+          <small>Delicious Poison · Plot Archive</small>
+        </span>
+      </a>
+      <div class="topbar-actions">
+        <p>Every sweetness leaves a mark.</p>
+        <button id="reduce-motion-main" class="icon-button" type="button" aria-label="Giảm hiệu ứng">✿</button>
+      </div>
+    </header>
+
+    <main id="main-content">
+      <section class="hero" id="archive">
+        <div class="hero-copy">
+          <p class="eyebrow"><span>Welcome, my dear</span> 🍷</p>
+          <h1>Độc Dược<br><em>Ngọt Ngào</em></h1>
+          <div class="archive-title-row">
+            <span>DELICIOUS POISON</span>
+            <strong>PLOT ARCHIVE</strong>
           </div>
+          <p class="hero-lead">Kho lưu trữ plot và open world — nơi mỗi cốt truyện là một liều độc, mỗi thế giới để lại một dư vị không thể quên.</p>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <section id="page-characters">
-    <div class="scrollable-page">
-      <div id="mode-selection">
-        <div onclick="goToPage('page-home')" class="back-btn">← Về Trang Chủ</div>
-        <div class="mode-card mode-nsfw" onclick="selectMode('NSFW')">
-          <div class="mode-title">NSFW</div>
-          <div class="mode-desc">Dark Desires & 18+</div>
+        <div class="hero-seal" aria-hidden="true">
+          <span>DP</span>
+          <small>PLOT<br>ARCHIVE</small>
         </div>
-        <div class="mode-card mode-sfw" onclick="selectMode('SFW')">
-          <div class="mode-title">SFW</div>
-          <div class="mode-desc">Pure Love & Safe</div>
+      </section>
+
+      <section class="archive-section" aria-live="polite">
+        <div class="section-intro">
+          <span class="section-index">ARCHIVE · 01</span>
+          <h2 id="step-heading">Chọn cánh cửa</h2>
+          <p id="step-description">Mỗi cánh cửa dẫn tới một kiểu trải nghiệm khác nhau trong khu vườn.</p>
         </div>
-      </div>
 
-      <div id="char-content">
-        <div onclick="backToSelection()" class="back-btn">← Chọn lại chế độ</div>
+        <div id="type-step" class="step-panel is-active">
+          <div class="choice-grid">
+            <button class="archive-door door-character" type="button" data-type="character">
+              <span class="door-number">01</span>
+              <span class="door-art" aria-hidden="true">🥀</span>
+              <span class="door-label">CHAR LẺ</span>
+              <span class="door-en">One-on-One Stories</span>
+              <span class="door-copy">Một nhân vật. Một mối quan hệ. Một cơn nghiện chỉ dành cho nàng.</span>
+              <span class="door-cta">MỞ CÁNH CỬA <b>↗</b></span>
+            </button>
 
-        <div class="char-header">
-          <h1 id="char-title" style="font-size:3rem;">DANH SÁCH</h1>
-
-          <div class="search-wrap">
-            <input type="text" id="search-inp" class="search-inp" placeholder="Tìm tên hoặc tag..." onkeyup="searchChar()">
-            <button class="filter-btn" onclick="toggleTags(this)">
-              <svg viewBox="0 0 24 24"><path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg>
+            <button class="archive-door door-world" type="button" data-type="world">
+              <span class="door-number">02</span>
+              <span class="door-art" aria-hidden="true">🗝</span>
+              <span class="door-label">OPEN WORLD</span>
+              <span class="door-en">World Archives</span>
+              <span class="door-copy">Những thế giới mở nơi nàng tự chọn thân phận, con đường và số phận.</span>
+              <span class="door-cta">MỞ CÁNH CỬA <b>↗</b></span>
             </button>
           </div>
-
-          <div class="filter-area" id="filter-tags-area"></div>
         </div>
 
-        <div class="char-grid" id="char-grid"></div>
-      </div>
-    </div>
-  </section>
-
-  <div id="char-popup" onclick="closePopup()">
-    <div class="popup-content" onclick="event.stopPropagation()">
-      <span class="close-btn" onclick="closePopup()">&times;</span>
-
-      <div class="popup-flex-container">
-        <div class="popup-left-col">
-          <div class="popup-avatar-wrapper">
-            <img id="p-img" src="" alt="Char Image">
-            <div id="p-label" class="p-label">Label</div>
-          </div>
-        </div>
-
-        <div class="popup-right-col">
-          <div class="popup-header-info">
-            <h2 id="p-name">NAME</h2>
-            <div id="p-sub">Subtitle Description</div>
-          </div>
-
-          <div id="p-tags-container" class="popup-tags"></div>
-
-          <div class="popup-quote-box">
-            <p id="p-quote">"Quote content"</p>
-          </div>
-
-          <div class="popup-expand-section">
-            <button id="btn-expand" class="expand-toggle-btn" onclick="toggleExpandInfo()">
-              <span class="plus-icon">+</span> Xem chi tiết hồ sơ
+        <div id="rating-step" class="step-panel" hidden>
+          <button class="text-back" type="button" data-back="type">← Quay lại chọn cánh cửa</button>
+          <div class="rating-grid">
+            <button class="dose-card dose-sfw" type="button" data-rating="sfw">
+              <span class="dose-mark">S</span>
+              <span class="dose-kicker">Sweet Dose</span>
+              <strong>SFW</strong>
+              <p>Dịu dàng, chữa lành, lãng mạn, phiêu lưu và những dư vị an toàn.</p>
+              <span class="dose-count" id="sfw-count">0 hồ sơ</span>
             </button>
-            <div id="p-expand-content" class="expand-content-box"></div>
-          </div>
-
-          <div class="popup-actions-footer">
-            <a id="link-mirai" href="#" target="_blank" rel="noreferrer" class="platform-btn">MiraiMind ↗</a>
-            <a id="link-doki" href="#" target="_blank" rel="noreferrer" class="platform-btn">Doki Chat ↗</a>
-            <a id="link-lovey" href="#" target="_blank" rel="noreferrer" class="platform-btn">Lovey Dovey ↗</a>
+            <button class="dose-card dose-nsfw" type="button" data-rating="nsfw">
+              <span class="dose-mark">N</span>
+              <span class="dose-kicker">Dark Dose</span>
+              <strong>NSFW <small>18+</small></strong>
+              <p>Những câu chuyện trưởng thành, đen tối và chứa nội dung nhạy cảm.</p>
+              <span class="dose-count" id="nsfw-count">0 hồ sơ</span>
+            </button>
           </div>
         </div>
-      </div>
 
-    </div>
+        <div id="catalog-step" class="step-panel" hidden>
+          <nav class="breadcrumbs" aria-label="Đường dẫn kho lưu trữ">
+            <button type="button" data-back="type">Plot Archive</button>
+            <span>/</span>
+            <button id="crumb-type" type="button" data-back="rating">Char lẻ</button>
+            <span>/</span>
+            <strong id="crumb-rating">SFW</strong>
+          </nav>
+
+          <div class="catalog-toolbar">
+            <label class="search-box">
+              <span class="sr-only">Tìm kiếm plot</span>
+              <input id="plot-search" type="search" placeholder="Tìm tên plot, trope hoặc dư vị...">
+              <span aria-hidden="true">⌕</span>
+            </label>
+            <div id="tag-filters" class="tag-filters" aria-label="Lọc theo tag"></div>
+          </div>
+
+          <div id="plot-grid" class="plot-grid"></div>
+          <div id="empty-state" class="empty-state" hidden>
+            <span>🥀</span>
+            <h3>Kho này vẫn đang được niêm phong</h3>
+            <p>Chưa có hồ sơ phù hợp với lựa chọn của nàng.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>⋆｡˚ 𓆩♱ Delicious Poison ♱𓆪 ˚⋆</span>
+      <p>Độc Dược Ngọt Ngào · Plot Archive</p>
+    </footer>
   </div>
 
-  <section id="page-gallery">
-    <div class="scrollable-page">
-      <div onclick="goToPage('page-home')" class="back-btn">← Quay Lại</div>
-      <div id="gallery-wrapper">
-        <h1 style="font-size:3rem; margin-bottom:20px;">THƯ VIỆN ẢNH</h1>
-        <div class="gallery-tabs" id="gallery-tabs-container"></div>
-        <div class="gallery-grid" id="gallery-grid"></div>
+  <div id="plot-modal" class="plot-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" hidden>
+    <div class="modal-backdrop" data-close-modal></div>
+    <article class="plot-dossier">
+      <button class="modal-close" type="button" aria-label="Đóng hồ sơ" data-close-modal>×</button>
+      <div id="modal-cover" class="dossier-cover">
+        <div class="dossier-cover-overlay"></div>
+        <div class="dossier-cover-copy">
+          <span id="modal-origin"></span>
+          <p id="modal-kind"></p>
+          <h2 id="modal-title"></h2>
+          <em id="modal-hook"></em>
+        </div>
       </div>
-    </div>
-  </section>
-
-  <div id="lightbox" onclick="closeLightbox()">
-    <span id="lb-close">&times;</span>
-    <img id="lb-img" src="" onclick="event.stopPropagation()">
+      <div class="dossier-body">
+        <div class="dossier-meta">
+          <div><span>LIỀU</span><strong id="modal-rating"></strong></div>
+          <div><span>QUYỀN TRUY CẬP</span><strong id="modal-access"></strong></div>
+          <div><span>TRẠNG THÁI</span><strong id="modal-status"></strong></div>
+        </div>
+        <div id="modal-tags" class="dossier-tags"></div>
+        <p id="modal-summary" class="dossier-summary"></p>
+        <div id="modal-sections" class="dossier-sections"></div>
+        <div id="modal-links" class="dossier-links"></div>
+      </div>
+    </article>
   </div>
 
-  <script src="data.js"></script>
+  <script src="plot-data.js"></script>
   <script src="logic.js"></script>
 </body>
 </html>

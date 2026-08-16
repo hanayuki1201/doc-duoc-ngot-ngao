@@ -1,309 +1,278 @@
-/* --- FILE XỬ LÝ LOGIC (Script) --- */
+const archiveData = Array.isArray(window.plotArchiveData) ? window.plotArchiveData : [];
 
-// 1. Chuyển trang
-function goToPage(pageId) {
-  document.querySelectorAll('section').forEach(sec => sec.classList.remove('active'));
-  document.getElementById(pageId).classList.add('active');
+const state = {
+  type: null,
+  rating: null,
+  tag: "all",
+  search: ""
+};
 
-  // Reset đúng flow khi vào Characters
-  if (pageId === 'page-characters') {
-    const content = document.getElementById('char-content');
-    const modeScreen = document.getElementById('mode-selection');
-    content.style.display = 'none';
-    content.style.opacity = '0';
-    modeScreen.style.display = 'flex';
-    modeScreen.style.opacity = '1';
-  }
+const ui = {
+  gate: document.getElementById("entry-gate"),
+  enter: document.getElementById("enter-button"),
+  app: document.getElementById("archive-app"),
+  typeStep: document.getElementById("type-step"),
+  ratingStep: document.getElementById("rating-step"),
+  catalogStep: document.getElementById("catalog-step"),
+  stepHeading: document.getElementById("step-heading"),
+  stepDescription: document.getElementById("step-description"),
+  sfwCount: document.getElementById("sfw-count"),
+  nsfwCount: document.getElementById("nsfw-count"),
+  crumbType: document.getElementById("crumb-type"),
+  crumbRating: document.getElementById("crumb-rating"),
+  search: document.getElementById("plot-search"),
+  tagFilters: document.getElementById("tag-filters"),
+  plotGrid: document.getElementById("plot-grid"),
+  emptyState: document.getElementById("empty-state"),
+  modal: document.getElementById("plot-modal"),
+  modalCover: document.getElementById("modal-cover"),
+  modalOrigin: document.getElementById("modal-origin"),
+  modalKind: document.getElementById("modal-kind"),
+  modalTitle: document.getElementById("modal-title"),
+  modalHook: document.getElementById("modal-hook"),
+  modalRating: document.getElementById("modal-rating"),
+  modalAccess: document.getElementById("modal-access"),
+  modalStatus: document.getElementById("modal-status"),
+  modalTags: document.getElementById("modal-tags"),
+  modalSummary: document.getElementById("modal-summary"),
+  modalSections: document.getElementById("modal-sections"),
+  modalLinks: document.getElementById("modal-links")
+};
 
-  if (pageId === 'page-gallery') {
-    initGalleryTabs();
-    renderGallery('ALL');
-  }
+const labels = {
+  character: {
+    name: "Char lẻ",
+    heading: "Chọn liều cho câu chuyện riêng",
+    description: "Một nhân vật, một mối quan hệ — nàng muốn nếm vị ngọt hay mở lọ độc tối màu?",
+    kind: "One-on-One Story"
+  },
+  world: {
+    name: "Open World",
+    heading: "Chọn liều cho thế giới mở",
+    description: "Mỗi thế giới đều có hai tầng dư vị. Hãy chọn cánh kho nàng muốn bước vào.",
+    kind: "World Archive"
+  },
+  sfw: { name: "SFW", dose: "Sweet Dose" },
+  nsfw: { name: "NSFW 18+", dose: "Dark Dose" }
+};
+
+function escapeHtml(value = "") {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
-let currentList = [];
-
-// Giữ layout đẹp ngay cả khi một ảnh nhân vật/thư viện chưa được tải lên.
-function armImageFallback(img, owner) {
-  if (!img) return;
-  img.addEventListener('error', function () {
-    img.style.opacity = '0';
-    if (owner) owner.classList.add('is-placeholder');
-  }, { once: true });
-}
-
-// 2. Quay lại chọn chế độ
-function backToSelection() {
-  const content = document.getElementById('char-content');
-  const modeScreen = document.getElementById('mode-selection');
-  content.style.opacity = '0';
-  setTimeout(() => {
-    content.style.display = 'none';
-    modeScreen.style.display = 'flex';
-    setTimeout(() => modeScreen.style.opacity = '1', 50);
-  }, 500);
-}
-
-// 3. Chọn chế độ NSFW/SFW (tô màu cho cả list + popup)
-function selectMode(mode) {
-  const modeScreen = document.getElementById('mode-selection');
-  const content = document.getElementById('char-content');
-  const popup = document.getElementById('char-popup');
-  const filterArea = document.getElementById('filter-tags-area');
-  const title = document.getElementById('char-title');
-
-  // Theme
-  content.classList.remove('theme-nsfw', 'theme-sfw');
-  popup.classList.remove('theme-nsfw', 'theme-sfw');
-
-  if (mode === 'NSFW') {
-    content.classList.add('theme-nsfw');
-    popup.classList.add('theme-nsfw');
-  } else {
-    content.classList.add('theme-sfw');
-    popup.classList.add('theme-sfw');
-  }
-
-  // Reset bộ lọc
-  filterArea.classList.remove('show');
-  const filterBtn = document.querySelector('.filter-btn');
-  if (filterBtn) filterBtn.classList.remove('active');
-
-  // Chuyển cảnh
-  modeScreen.style.opacity = '0';
-  setTimeout(() => {
-    modeScreen.style.display = 'none';
-    content.style.display = 'block';
-    setTimeout(() => content.style.opacity = '1', 50);
-  }, 500);
-
-  // Lọc data
-  if (mode === 'NSFW') {
-    currentList = (charData || []).filter(c => (c.tags || []).includes('18+'));
-    title.innerText = "DANH SÁCH (NSFW)";
-    title.style.color = "#ff0000";
-  } else {
-    currentList = (charData || []).filter(c => !(c.tags || []).includes('18+'));
-    title.innerText = "DANH SÁCH (SFW)";
-    title.style.color = "#00ccff";
-  }
-
-  // Render tags filter (FIX: truyền this vào filterTag)
-  const tagsToShow = configTags[mode] || [];
-  let tagsHTML = `<div class="f-tag active-tag" onclick="filterTag('all', this)">Tất cả</div>`;
-  tagsToShow.forEach(tag => {
-    tagsHTML += `<div class="f-tag" onclick="filterTag('${tag}', this)">${tag}</div>`;
+function setStep(activeStep) {
+  [ui.typeStep, ui.ratingStep, ui.catalogStep].forEach((panel) => {
+    const isActive = panel === activeStep;
+    panel.hidden = !isActive;
+    panel.classList.toggle("is-active", isActive);
   });
-  filterArea.innerHTML = tagsHTML;
-
-  renderList(currentList);
+  window.scrollTo({ top: document.querySelector(".archive-section").offsetTop - 70, behavior: "smooth" });
 }
 
-// 4. Bật tắt bộ lọc Tag
-function toggleTags(btn) {
-  const area = document.getElementById('filter-tags-area');
-  area.classList.toggle('show');
-  btn.classList.toggle('active');
+function openGate() {
+  ui.gate.classList.add("is-leaving");
+  ui.app.setAttribute("aria-hidden", "false");
+  document.body.classList.add("archive-open");
+  window.setTimeout(() => {
+    ui.gate.hidden = true;
+    ui.app.classList.add("is-visible");
+    document.querySelector(".archive-door")?.focus({ preventScroll: true });
+  }, document.body.classList.contains("reduce-motion") ? 20 : 850);
 }
 
-// 5. Render List
-function renderList(list) {
-  const grid = document.getElementById('char-grid');
-  grid.innerHTML = '';
-
-  (list || []).forEach((c) => {
-    const tagsHTML = (c.tags || []).map(t => `<span class="tag-small">${t}</span>`).join('');
-    const div = document.createElement('div');
-    div.className = 'char-card';
-    div.style.animation = `fadeInPage 0.5s ease forwards`;
-    div.onclick = function () { openPopup(c); };
-
-    div.innerHTML = `
-      <div class="c-img-wrap">
-        <img src="${c.img}" class="c-img" alt="${c.name}">
-        <div class="img-label" style="position:absolute; bottom:5px; left:10px; font-family:'Great Vibes'; color:#fcc;">
-          ${c.label || ''}
-        </div>
-      </div>
-      <div class="c-info">
-        <div class="tags-row">${tagsHTML}</div>
-        <div>
-          <div style="font-size:1.5rem; font-weight:700;">${c.name || ''}</div>
-          <div style="color:#f33; font-family:'Great Vibes';">${c.sub || ''}</div>
-        </div>
-        <div style="text-align:right; font-size:0.8rem; color:#844; border-top:1px solid #300; padding-top:5px;">
-          ${(c.stats || '0')} souls
-        </div>
-      </div>
-    `;
-    const cardImg = div.querySelector('.c-img');
-    if (cardImg) {
-      cardImg.loading = 'lazy';
-      cardImg.decoding = 'async';
-      armImageFallback(cardImg, div);
-    }
-    grid.appendChild(div);
+function toggleMotion() {
+  document.body.classList.toggle("reduce-motion");
+  const reduced = document.body.classList.contains("reduce-motion");
+  document.querySelectorAll("[id^='reduce-motion']").forEach((button) => {
+    button.setAttribute("aria-pressed", String(reduced));
+    button.title = reduced ? "Bật lại hiệu ứng" : "Giảm hiệu ứng";
   });
 }
 
-// 6. Xử lý Popup
-function openPopup(char) {
-  const popup = document.getElementById('char-popup');
+function selectType(type) {
+  state.type = type;
+  state.rating = null;
+  state.tag = "all";
+  state.search = "";
+  ui.search.value = "";
 
-  // Reset expand
-  const expandBtn = document.getElementById('btn-expand');
-  const expandContent = document.getElementById('p-expand-content');
-  if (expandBtn) expandBtn.classList.remove('active');
-  if (expandContent) expandContent.classList.remove('show');
-
-  // Fill data
-  const popupImg = document.getElementById('p-img');
-  const popupImgWrap = popupImg.closest('.popup-avatar-wrapper');
-  popupImgWrap.classList.remove('is-placeholder');
-  popupImg.style.opacity = '1';
-  popupImg.src = char.img || '';
-  armImageFallback(popupImg, popupImgWrap);
-  document.getElementById('p-label').innerText = char.label || '';
-  document.getElementById('p-name').innerText = char.name || '';
-  document.getElementById('p-sub').innerText = char.sub || '';
-
-  const tagsContainer = document.getElementById('p-tags-container');
-  tagsContainer.innerHTML = (char.tags || []).map(t => `<span class="p-tag-pill">${t}</span>`).join('');
-  document.getElementById('p-quote').innerText = `"${char.quote || ''}"`;
-
-  // Expand Content
-  const bs = char.backstory || "Chưa cập nhật.";
-  const pi = char.public_info || "Chưa có thông tin.";
-
-  if (expandContent) {
-    expandContent.innerHTML = `
-      <div class="info-block">
-        <div class="info-title">✦ Backstory</div>
-        <div class="info-text">${bs}</div>
-      </div>
-      <div class="info-block">
-        <div class="info-title">✦ Thông tin công khai</div>
-        <div class="info-text">${pi}</div>
-      </div>
-    `;
-  }
-
-  // Links
-  const links = char.links || {};
-  document.getElementById('link-mirai').href = links.mirai || "#";
-  document.getElementById('link-doki').href = links.doki || "#";
-  document.getElementById('link-lovey').href = links.lovey || "#";
-
-  popup.classList.add('active');
+  const typeData = archiveData.filter((plot) => plot.type === type);
+  const sfw = typeData.filter((plot) => plot.rating === "sfw").length;
+  const nsfw = typeData.filter((plot) => plot.rating === "nsfw").length;
+  ui.sfwCount.textContent = `${sfw} hồ sơ`;
+  ui.nsfwCount.textContent = `${nsfw} hồ sơ`;
+  ui.stepHeading.textContent = labels[type].heading;
+  ui.stepDescription.textContent = labels[type].description;
+  setStep(ui.ratingStep);
 }
 
-function closePopup() {
-  document.getElementById('char-popup').classList.remove('active');
+function selectRating(rating) {
+  state.rating = rating;
+  state.tag = "all";
+  document.body.classList.remove("theme-sfw", "theme-nsfw");
+  document.body.classList.add(`theme-${rating}`);
+
+  ui.crumbType.textContent = labels[state.type].name;
+  ui.crumbRating.textContent = labels[rating].name;
+  ui.stepHeading.textContent = `${labels[state.type].name} · ${labels[rating].name}`;
+  ui.stepDescription.textContent = rating === "sfw"
+    ? "Những câu chuyện có dư vị dịu hơn — nhưng ngọt ngào chưa bao giờ đồng nghĩa với vô hại."
+    : "Khu lưu trữ trưởng thành. Nội dung có thể chứa chủ đề đen tối và chỉ dành cho người từ 18 tuổi.";
+
+  renderTagFilters();
+  renderPlots();
+  setStep(ui.catalogStep);
 }
 
-function toggleExpandInfo() {
-  const btn = document.getElementById('btn-expand');
-  const content = document.getElementById('p-expand-content');
-  if (btn) btn.classList.toggle('active');
-  if (content) content.classList.toggle('show');
-}
-
-// 7. Tìm kiếm & Lọc (FIX: chống crash khi thiếu tags)
-function searchChar() {
-  const term = (document.getElementById('search-inp').value || '').toLowerCase();
-  const filtered = (currentList || []).filter(c =>
-    (c.name || '').toLowerCase().includes(term) ||
-    (c.tags || []).some(t => (t || '').toLowerCase().includes(term))
-  );
-  renderList(filtered);
-}
-
-// FIX: không dùng event global; truyền element vào
-function filterTag(tag, el) {
-  document.querySelectorAll('.f-tag').forEach(t => t.classList.remove('active-tag'));
-  if (el) el.classList.add('active-tag');
-
-  if (tag === 'all') renderList(currentList);
-  else renderList((currentList || []).filter(c => (c.tags || []).includes(tag)));
-}
-
-// 8. Gallery Logic
-function initGalleryTabs() {
-  const container = document.getElementById('gallery-tabs-container');
-  const allTags = [...new Set((galleryData || []).map(item => item.tag))];
-
-  let html = `<div class="g-tab active" onclick="filterGallery('ALL', this)">Tất Cả</div>`;
-  allTags.forEach(tag => { if (tag) html += `<div class="g-tab" onclick="filterGallery('${tag}', this)">${tag}</div>`; });
-  container.innerHTML = html;
-}
-
-function renderGallery(filterMode) {
-  const grid = document.getElementById('gallery-grid');
-  grid.innerHTML = '';
-
-  let displayData = (galleryData || []);
-  if (filterMode !== 'ALL') displayData = displayData.filter(img => img.tag === filterMode);
-
-  if (displayData.length === 0) {
-    grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #888;">Chưa có ảnh.</p>`;
+function goBack(destination) {
+  if (destination === "type") {
+    state.type = null;
+    state.rating = null;
+    document.body.classList.remove("theme-sfw", "theme-nsfw");
+    ui.stepHeading.textContent = "Chọn cánh cửa";
+    ui.stepDescription.textContent = "Mỗi cánh cửa dẫn tới một kiểu trải nghiệm khác nhau trong khu vườn.";
+    setStep(ui.typeStep);
     return;
   }
 
-  displayData.forEach((item, i) => {
-    const div = document.createElement('div');
-    div.className = 'g-item';
-    div.style.animation = `fadeInPage 0.5s ease forwards ${i * 0.1}s`;
-    div.onclick = function () { openLightbox(item.src); };
-    div.innerHTML = `<img src="${item.src}" alt="Gallery Image" loading="lazy" decoding="async">`;
-    armImageFallback(div.querySelector('img'), div);
-    grid.appendChild(div);
+  state.rating = null;
+  document.body.classList.remove("theme-sfw", "theme-nsfw");
+  ui.stepHeading.textContent = labels[state.type].heading;
+  ui.stepDescription.textContent = labels[state.type].description;
+  setStep(ui.ratingStep);
+}
+
+function currentArchive() {
+  return archiveData.filter((plot) => plot.type === state.type && plot.rating === state.rating);
+}
+
+function renderTagFilters() {
+  const tags = [...new Set(currentArchive().flatMap((plot) => plot.tags || []))].sort((a, b) => a.localeCompare(b));
+  ui.tagFilters.innerHTML = ["all", ...tags].map((tag) => {
+    const text = tag === "all" ? "Tất cả" : tag;
+    const pressed = state.tag === tag;
+    return `<button type="button" class="tag-filter ${pressed ? "is-active" : ""}" data-tag="${escapeHtml(tag)}" aria-pressed="${pressed}">${escapeHtml(text)}</button>`;
+  }).join("");
+}
+
+function plotCoverStyle(plot) {
+  return plot.cover ? `style="--plot-image:url('${escapeHtml(plot.cover)}')"` : "";
+}
+
+function renderPlots() {
+  const term = state.search.trim().toLocaleLowerCase("vi");
+  const results = currentArchive().filter((plot) => {
+    const matchesTag = state.tag === "all" || (plot.tags || []).includes(state.tag);
+    const haystack = [plot.title, plot.hook, plot.summary, ...(plot.tags || [])].join(" ").toLocaleLowerCase("vi");
+    return matchesTag && (!term || haystack.includes(term));
   });
+
+  ui.plotGrid.innerHTML = results.map((plot, index) => `
+    <article class="plot-card tone-${escapeHtml(plot.tone || "velvet")}" data-plot-id="${escapeHtml(plot.id)}" style="--delay:${index * 70}ms">
+      <button class="plot-card-button" type="button" aria-label="Mở hồ sơ ${escapeHtml(plot.title)}">
+        <div class="plot-cover" ${plotCoverStyle(plot)}>
+          <span class="plot-origin">${escapeHtml(plot.origin || "🥀")}</span>
+          <span class="plot-access">${escapeHtml(plot.access || "Archive")}</span>
+          <span class="plot-number">${String(index + 1).padStart(2, "0")}</span>
+        </div>
+        <div class="plot-card-body">
+          <div class="plot-card-meta">
+            <span>${escapeHtml(labels[plot.type].kind)}</span>
+            <span>${escapeHtml(labels[plot.rating].dose)}</span>
+          </div>
+          <h3>${escapeHtml(plot.title)}</h3>
+          <p class="plot-hook">“${escapeHtml(plot.hook)}”</p>
+          <div class="plot-tags">${(plot.tags || []).slice(0, 4).map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}</div>
+          <span class="open-dossier">MỞ HỒ SƠ PLOT <b>↗</b></span>
+        </div>
+      </button>
+    </article>
+  `).join("");
+
+  ui.emptyState.hidden = results.length > 0;
 }
 
-function filterGallery(mode, btn) {
-  document.querySelectorAll('.g-tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  renderGallery(mode);
+function openPlot(id) {
+  const plot = archiveData.find((item) => item.id === id);
+  if (!plot) return;
+
+  ui.modalCover.className = `dossier-cover tone-${plot.tone || "velvet"}`;
+  ui.modalCover.style.setProperty("--plot-image", plot.cover ? `url('${plot.cover}')` : "none");
+  ui.modalOrigin.textContent = plot.origin || "🥀";
+  ui.modalKind.textContent = `${labels[plot.type].kind} · ${labels[plot.rating].dose}`;
+  ui.modalTitle.textContent = plot.title;
+  ui.modalHook.textContent = `“${plot.hook}”`;
+  ui.modalRating.textContent = labels[plot.rating].name;
+  ui.modalAccess.textContent = plot.access || "Archive";
+  ui.modalStatus.textContent = plot.status || "Đang cập nhật";
+  ui.modalSummary.textContent = plot.summary || "Hồ sơ đang được cập nhật.";
+
+  ui.modalTags.innerHTML = (plot.tags || []).map((tag) => `<span>${escapeHtml(tag)}</span>`).join("");
+  ui.modalSections.innerHTML = (plot.sections || []).map((section, index) => `
+    <section class="dossier-section">
+      <span>${String(index + 1).padStart(2, "0")}</span>
+      <div>
+        <h3>${escapeHtml(section.label)}</h3>
+        <p>${escapeHtml(section.content)}</p>
+      </div>
+    </section>
+  `).join("");
+
+  const activeLinks = (plot.links || []).filter((link) => link.url);
+  ui.modalLinks.innerHTML = activeLinks.length
+    ? activeLinks.map((link) => `<a href="${escapeHtml(link.url)}" target="_blank" rel="noreferrer">${escapeHtml(link.label)} ↗</a>`).join("")
+    : `<span>Đường dẫn trải nghiệm đang được niêm phong.</span>`;
+
+  ui.modal.hidden = false;
+  requestAnimationFrame(() => ui.modal.classList.add("is-open"));
+  document.body.classList.add("modal-open");
+  ui.modal.querySelector(".modal-close")?.focus();
 }
 
-// 9. Lightbox
-function openLightbox(src) {
-  const lb = document.getElementById('lightbox');
-  const img = document.getElementById('lb-img');
-  img.src = src;
-  lb.classList.add('active');
+function closePlot() {
+  if (ui.modal.hidden) return;
+  ui.modal.classList.remove("is-open");
+  document.body.classList.remove("modal-open");
+  window.setTimeout(() => { ui.modal.hidden = true; }, document.body.classList.contains("reduce-motion") ? 10 : 300);
 }
 
-function closeLightbox() {
-  document.getElementById('lightbox').classList.remove('active');
-}
+ui.enter.addEventListener("click", openGate);
+document.querySelectorAll("[id^='reduce-motion']").forEach((button) => button.addEventListener("click", toggleMotion));
+document.querySelectorAll(".archive-door").forEach((button) => button.addEventListener("click", () => selectType(button.dataset.type)));
+document.querySelectorAll(".dose-card").forEach((button) => button.addEventListener("click", () => selectRating(button.dataset.rating)));
+document.querySelectorAll("[data-back]").forEach((button) => button.addEventListener("click", () => goBack(button.dataset.back)));
 
-// 10. Start Screen
-document.getElementById('start-screen').addEventListener('click', function () {
-  this.style.opacity = '0';
-  setTimeout(() => { this.style.display = 'none'; }, 1000);
-
-  const audio = document.getElementById('bg-music');
-  audio.volume = 0.5;
-  audio.play().catch(e => console.log(e));
+ui.search.addEventListener("input", (event) => {
+  state.search = event.target.value;
+  renderPlots();
 });
 
-const sc = document.getElementById('stars-container');
-for (let i = 0; i < 150; i++) {
-  const s = document.createElement('div');
-  s.className = 'star';
-  const size = Math.random() * 3 + 2;
-  s.style.width = size + 'px';
-  s.style.height = size + 'px';
-  s.style.left = Math.random() * 150 + '%';
-  s.style.top = Math.random() * -100 + '%';
-  s.style.animationDuration = Math.random() * 2 + 2 + 's';
-  s.style.animationDelay = Math.random() * 5 + 's';
-  sc.appendChild(s);
-}
-
-document.addEventListener('keydown', function (event) {
-  if (event.key !== 'Escape') return;
-  closePopup();
-  closeLightbox();
+ui.tagFilters.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-tag]");
+  if (!button) return;
+  state.tag = button.dataset.tag;
+  renderTagFilters();
+  renderPlots();
 });
+
+ui.plotGrid.addEventListener("click", (event) => {
+  const card = event.target.closest("[data-plot-id]");
+  if (card) openPlot(card.dataset.plotId);
+});
+
+ui.modal.addEventListener("click", (event) => {
+  if (event.target.closest("[data-close-modal]")) closePlot();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closePlot();
+});
+
+if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  document.body.classList.add("reduce-motion");
+}
