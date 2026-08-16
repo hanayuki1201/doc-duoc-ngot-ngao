@@ -12,7 +12,7 @@
   --rose:#d79ba4;
   --safe:#c59ea5;
   --shadow:0 26px 90px rgba(0,0,0,.62);
-  --serif:"Be Vietnam Pro","Segoe UI",Arial,sans-serif;
+  --serif:"Fraunces",Georgia,serif;
   --sans:"Be Vietnam Pro","Segoe UI",Arial,sans-serif;
   --display:"Fraunces",Georgia,serif;
 }
@@ -156,6 +156,7 @@ footer{display:flex;flex-direction:column;align-items:center;justify-content:cen
 }
 
 /* Readability pass — phần nội dung luôn đủ lớn và đủ sáng trên điện thoại */
+.hero-lead,.plot-hook,.dossier-cover-copy em,.dossier-summary{font-family:var(--sans)}
 .gate-brand{font-size:.74rem;font-weight:600;color:var(--ivory)}
 .gate-kicker{font-size:1rem;color:var(--ivory)}
 .gate-copy{font-size:1rem;color:var(--ivory)}
