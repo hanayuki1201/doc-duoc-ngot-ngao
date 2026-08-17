@@ -1,10 +1,11 @@
-const archiveData = Array.isArray(window.plotArchiveData) ? window.plotArchiveData : [];
+let archiveData = Array.isArray(window.plotArchiveData) ? [...window.plotArchiveData] : [];
 
 const state = {
   type: null,
-  rating: null,
+  access: null,
   tag: "all",
-  search: ""
+  search: "",
+  activePlotId: null
 };
 
 const ui = {
@@ -12,14 +13,14 @@ const ui = {
   enter: document.getElementById("enter-button"),
   app: document.getElementById("archive-app"),
   typeStep: document.getElementById("type-step"),
-  ratingStep: document.getElementById("rating-step"),
+  accessStep: document.getElementById("access-step"),
   catalogStep: document.getElementById("catalog-step"),
   stepHeading: document.getElementById("step-heading"),
   stepDescription: document.getElementById("step-description"),
-  sfwCount: document.getElementById("sfw-count"),
-  nsfwCount: document.getElementById("nsfw-count"),
+  firstTasteCount: document.getElementById("first-taste-count"),
+  sealedVialCount: document.getElementById("sealed-vial-count"),
   crumbType: document.getElementById("crumb-type"),
-  crumbRating: document.getElementById("crumb-rating"),
+  crumbAccess: document.getElementById("crumb-access"),
   search: document.getElementById("plot-search"),
   tagFilters: document.getElementById("tag-filters"),
   plotGrid: document.getElementById("plot-grid"),
@@ -30,30 +31,33 @@ const ui = {
   modalKind: document.getElementById("modal-kind"),
   modalTitle: document.getElementById("modal-title"),
   modalHook: document.getElementById("modal-hook"),
-  modalRating: document.getElementById("modal-rating"),
   modalAccess: document.getElementById("modal-access"),
+  modalFormat: document.getElementById("modal-format"),
   modalStatus: document.getElementById("modal-status"),
   modalTags: document.getElementById("modal-tags"),
   modalSummary: document.getElementById("modal-summary"),
+  modalGalleryWrap: document.getElementById("modal-gallery-wrap"),
+  modalGallery: document.getElementById("modal-gallery"),
+  modalGalleryCount: document.getElementById("modal-gallery-count"),
   modalSections: document.getElementById("modal-sections"),
   modalLinks: document.getElementById("modal-links")
 };
 
 const labels = {
   character: {
-    name: "Char lẻ",
-    heading: "Chọn liều cho câu chuyện riêng",
-    description: "Một nhân vật, một mối quan hệ — nàng muốn nếm vị ngọt hay mở lọ độc tối màu?",
-    kind: "One-on-One Story"
+    name: "Plot Nhân Vật",
+    heading: "Chọn khu vực cho plot nhân vật",
+    description: "Từ solo, nhiều tuyến nhân vật đến NP — mỗi hồ sơ đều được dẫn dắt bởi mối quan hệ.",
+    kind: "Character-led Story"
   },
   world: {
     name: "Open World",
-    heading: "Chọn liều cho thế giới mở",
-    description: "Mỗi thế giới đều có hai tầng dư vị. Hãy chọn cánh kho nàng muốn bước vào.",
+    heading: "Chọn khu vực cho thế giới mở",
+    description: "Mỗi thế giới đều có một cách bước vào. Hãy chọn bộ sưu tập nàng muốn khám phá.",
     kind: "World Archive"
   },
-  sfw: { name: "SFW", dose: "Sweet Dose" },
-  nsfw: { name: "NSFW 18+", dose: "Dark Dose" }
+  "first-taste": { name: "First Taste", collection: "First Taste" },
+  "sealed-vial": { name: "Sealed Vial", collection: "Sealed Vial" }
 };
 
 function createFallingLight() {
@@ -80,6 +84,121 @@ function createFallingLight() {
 
 createFallingLight();
 
+const importedOrigins = {
+  "Yoon Tae Oh (윤대오)": "🇰🇷",
+  "Sổ tay trốn việc của Tứ đại Thiếu gia Hoắc thị": "🇨🇳",
+  "Vầng sáng Aurelis": "✦",
+  "Phần 1 : Bí mật ánh trăng hạ": "🌙",
+  "E.D.E.N 2": "🧬",
+  "Đỗ Vĩnh Khang": "🇻🇳",
+  "Tanaka Hayato": "🇯🇵",
+  "Tần Dực": "🇨🇳",
+  "Lục Thần Dạ": "🇨🇳"
+};
+
+function cleanArchiveText(value = "") {
+  return String(value).replaceAll("\u200b", "").replaceAll("\r\n", "\n").trim();
+}
+
+function firstMeaningfulLine(value = "") {
+  const line = cleanArchiveText(value)
+    .split("\n")
+    .map((item) => item.trim())
+    .find((item) => item && !/^[｡･:*★☆─—\s]+$/.test(item));
+  if (!line) return "Một hồ sơ đang chờ nàng mở ra.";
+  return line.length > 190 ? `${line.slice(0, 187).trim()}…` : line;
+}
+
+function archiveAssetPath(value = "") {
+  return `plot-assets/${String(value).replace(/^\/+/, "").replace(/\.png$/i, ".webp")}`;
+}
+
+function inferPlotFormat(tags = []) {
+  const normalized = tags.map((tag) => String(tag).toLocaleLowerCase("vi"));
+  if (normalized.includes("np")) return "NP / Multi-character";
+  if (normalized.some((tag) => tag.includes("reverseharem") || tag.includes("otome"))) return "Multi-route";
+  return "Solo Route";
+}
+
+function makeImportedPlot(raw) {
+  const accessTier = raw.khu_vuc === "Sealed Vial" ? "sealed-vial" : "first-taste";
+  const access = labels[accessTier].name;
+  const sourceTags = Array.isArray(raw.tags) ? raw.tags.map(cleanArchiveText).filter(Boolean) : [];
+  const tags = [...new Set([...sourceTags, access])];
+  const hasNsfwTag = sourceTags.some((tag) => tag.toLocaleLowerCase("vi") === "nsfw");
+  const sourceImages = Array.isArray(raw.anh) ? raw.anh.filter(Boolean) : [];
+  const images = sourceImages.map(archiveAssetPath);
+  const sections = [];
+
+  const addSection = (label, content) => {
+    const cleaned = cleanArchiveText(content);
+    if (cleaned) sections.push({ label, content: cleaned });
+  };
+
+  addSection("Poison Hook", raw.poison_hook);
+  addSection("First Sip", raw.first_sip);
+  addSection("Nơi câu chuyện bắt đầu", raw.where_it_begins);
+  addSection("Hồ sơ nhân vật", raw.character_dossier);
+  addSection("Hồ sơ thế giới", raw.world_dossier);
+  addSection("Behind the Curtain", raw.behind_the_curtain);
+  (Array.isArray(raw.extra_stories) ? raw.extra_stories : []).forEach((story, index) => {
+    if (story && typeof story === "object") addSection(cleanArchiveText(story.title) || `Ngoại truyện ${index + 1}`, story.body);
+  });
+
+  const slug = cleanArchiveText(raw.thu_muc_anh).split("/").filter(Boolean).pop() || cleanArchiveText(raw.id) || `plot-${archiveData.length}`;
+  const firstSip = cleanArchiveText(raw.first_sip);
+
+  return {
+    id: `import-${slug}`,
+    origin: importedOrigins[raw.name] || "🥀",
+    title: cleanArchiveText(raw.name),
+    type: "character",
+    accessTier,
+    access,
+    format: inferPlotFormat(sourceTags),
+    contentRating: hasNsfwTag ? "NSFW" : "Unrated",
+    tone: accessTier === "sealed-vial" ? "blood" : hasNsfwTag ? "crimson" : sourceTags.includes("Fantasy") ? "dream" : "velvet",
+    cover: images[0] || "",
+    gallery: images.slice(1),
+    status: raw.badge === "HOT" ? "Nổi bật" : raw.badge === "NEW" ? "Mới cập nhật" : cleanArchiveText(raw.badge) || "Đã lưu trữ",
+    hook: firstMeaningfulLine(raw.poison_hook),
+    summary: firstSip || firstMeaningfulLine(raw.poison_hook),
+    tags,
+    sections,
+    links: []
+  };
+}
+
+function normalizeExistingPlots() {
+  archiveData = archiveData.map((plot) => {
+    const accessTier = plot.accessTier || (plot.access === "Sealed Vial" ? "sealed-vial" : "first-taste");
+    const access = labels[accessTier].name;
+    return {
+      ...plot,
+      accessTier,
+      access,
+      format: plot.format || (plot.type === "world" ? "World-led" : "Solo Route"),
+      tags: [...new Set([...(plot.tags || []), access])]
+    };
+  });
+}
+
+async function loadImportedCharacters() {
+  normalizeExistingPlots();
+  try {
+    const response = await fetch("plot-assets/characters.json?v=8");
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const payload = await response.json();
+    const imported = Array.isArray(payload.characters) ? payload.characters.map(makeImportedPlot) : [];
+    const knownIds = new Set(archiveData.map((plot) => plot.id));
+    archiveData.push(...imported.filter((plot) => !knownIds.has(plot.id)));
+  } catch (error) {
+    console.warn("Không thể nạp dữ liệu nhân vật đã xuất:", error);
+  }
+}
+
+const dataReady = loadImportedCharacters();
+
 function escapeHtml(value = "") {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -90,7 +209,7 @@ function escapeHtml(value = "") {
 }
 
 function setStep(activeStep) {
-  [ui.typeStep, ui.ratingStep, ui.catalogStep].forEach((panel) => {
+  [ui.typeStep, ui.accessStep, ui.catalogStep].forEach((panel) => {
     const isActive = panel === activeStep;
     panel.hidden = !isActive;
     panel.classList.toggle("is-active", isActive);
@@ -98,7 +217,9 @@ function setStep(activeStep) {
   window.scrollTo({ top: document.querySelector(".archive-section").offsetTop - 70, behavior: "smooth" });
 }
 
-function openGate() {
+async function openGate() {
+  ui.enter.disabled = true;
+  await dataReady;
   ui.gate.classList.add("is-leaving");
   ui.app.setAttribute("aria-hidden", "false");
   document.body.classList.add("archive-open");
@@ -120,33 +241,31 @@ function toggleMotion() {
 
 function selectType(type) {
   state.type = type;
-  state.rating = null;
+  state.access = null;
   state.tag = "all";
   state.search = "";
   ui.search.value = "";
 
   const typeData = archiveData.filter((plot) => plot.type === type);
-  const sfw = typeData.filter((plot) => plot.rating === "sfw").length;
-  const nsfw = typeData.filter((plot) => plot.rating === "nsfw").length;
-  ui.sfwCount.textContent = `${sfw} hồ sơ`;
-  ui.nsfwCount.textContent = `${nsfw} hồ sơ`;
+  const firstTaste = typeData.filter((plot) => plot.accessTier === "first-taste").length;
+  const sealedVial = typeData.filter((plot) => plot.accessTier === "sealed-vial").length;
+  ui.firstTasteCount.textContent = `${firstTaste} hồ sơ`;
+  ui.sealedVialCount.textContent = `${sealedVial} hồ sơ`;
   ui.stepHeading.textContent = labels[type].heading;
   ui.stepDescription.textContent = labels[type].description;
-  setStep(ui.ratingStep);
+  setStep(ui.accessStep);
 }
 
-function selectRating(rating) {
-  state.rating = rating;
+function selectAccess(access) {
+  state.access = access;
   state.tag = "all";
-  document.body.classList.remove("theme-sfw", "theme-nsfw");
-  document.body.classList.add(`theme-${rating}`);
 
   ui.crumbType.textContent = labels[state.type].name;
-  ui.crumbRating.textContent = labels[rating].name;
-  ui.stepHeading.textContent = `${labels[state.type].name} · ${labels[rating].name}`;
-  ui.stepDescription.textContent = rating === "sfw"
-    ? "Những câu chuyện có dư vị dịu hơn — nhưng ngọt ngào chưa bao giờ đồng nghĩa với vô hại."
-    : "Khu lưu trữ trưởng thành. Nội dung có thể chứa chủ đề đen tối và chỉ dành cho người từ 18 tuổi.";
+  ui.crumbAccess.textContent = labels[access].name;
+  ui.stepHeading.textContent = `${labels[state.type].name} · ${labels[access].name}`;
+  ui.stepDescription.textContent = access === "first-taste"
+    ? "Bộ sưu tập First Taste — những hồ sơ đang mở trong khu vườn của Delicious Poison."
+    : "Bộ sưu tập Sealed Vial — những plot đặc biệt mang dấu niêm phong riêng của Nàng chủ.";
 
   renderTagFilters();
   renderPlots();
@@ -156,23 +275,21 @@ function selectRating(rating) {
 function goBack(destination) {
   if (destination === "type") {
     state.type = null;
-    state.rating = null;
-    document.body.classList.remove("theme-sfw", "theme-nsfw");
+    state.access = null;
     ui.stepHeading.textContent = "Chọn cánh cửa";
     ui.stepDescription.textContent = "Mỗi cánh cửa dẫn tới một kiểu trải nghiệm khác nhau trong khu vườn.";
     setStep(ui.typeStep);
     return;
   }
 
-  state.rating = null;
-  document.body.classList.remove("theme-sfw", "theme-nsfw");
+  state.access = null;
   ui.stepHeading.textContent = labels[state.type].heading;
   ui.stepDescription.textContent = labels[state.type].description;
-  setStep(ui.ratingStep);
+  setStep(ui.accessStep);
 }
 
 function currentArchive() {
-  return archiveData.filter((plot) => plot.type === state.type && plot.rating === state.rating);
+  return archiveData.filter((plot) => plot.type === state.type && plot.accessTier === state.access);
 }
 
 function renderTagFilters() {
@@ -186,6 +303,22 @@ function renderTagFilters() {
 
 function plotCoverStyle(plot) {
   return plot.cover ? `style="--plot-image:url('${escapeHtml(plot.cover)}')"` : "";
+}
+
+function setModalCoverImage(source = "") {
+  const safeSource = String(source).replaceAll("\\", "\\\\").replaceAll("'", "\\'");
+  ui.modalCover.style.setProperty("--plot-image", source ? `url('${safeSource}')` : "none");
+}
+
+function renderGallery(plot) {
+  const images = [plot.cover, ...(plot.gallery || [])].filter(Boolean);
+  ui.modalGalleryWrap.hidden = images.length === 0;
+  ui.modalGalleryCount.textContent = `${images.length} ảnh`;
+  ui.modalGallery.innerHTML = images.map((source, index) => `
+    <button class="gallery-thumb ${index === 0 ? "is-active" : ""}" type="button" data-gallery-src="${escapeHtml(source)}" aria-label="Xem ảnh ${index + 1} của ${escapeHtml(plot.title)}">
+      <img src="${escapeHtml(source)}" alt="" loading="lazy" decoding="async">
+    </button>
+  `).join("");
 }
 
 function renderPlots() {
@@ -207,7 +340,7 @@ function renderPlots() {
         <div class="plot-card-body">
           <div class="plot-card-meta">
             <span>${escapeHtml(labels[plot.type].kind)}</span>
-            <span>${escapeHtml(labels[plot.rating].dose)}</span>
+            <span>${escapeHtml(plot.format || plot.access)}</span>
           </div>
           <h3>${escapeHtml(plot.title)}</h3>
           <p class="plot-hook">“${escapeHtml(plot.hook)}”</p>
@@ -225,18 +358,21 @@ function openPlot(id) {
   const plot = archiveData.find((item) => item.id === id);
   if (!plot) return;
 
+  state.activePlotId = id;
+
   ui.modalCover.className = `dossier-cover tone-${plot.tone || "velvet"}`;
-  ui.modalCover.style.setProperty("--plot-image", plot.cover ? `url('${plot.cover}')` : "none");
+  setModalCoverImage(plot.cover);
   ui.modalOrigin.textContent = plot.origin || "🥀";
-  ui.modalKind.textContent = `${labels[plot.type].kind} · ${labels[plot.rating].dose}`;
+  ui.modalKind.textContent = `${labels[plot.type].kind} · ${plot.access}`;
   ui.modalTitle.textContent = plot.title;
   ui.modalHook.textContent = `“${plot.hook}”`;
-  ui.modalRating.textContent = labels[plot.rating].name;
-  ui.modalAccess.textContent = plot.access || "Archive";
+  ui.modalAccess.textContent = plot.access || "First Taste";
+  ui.modalFormat.textContent = plot.format || labels[plot.type].kind;
   ui.modalStatus.textContent = plot.status || "Đang cập nhật";
   ui.modalSummary.textContent = plot.summary || "Hồ sơ đang được cập nhật.";
 
   ui.modalTags.innerHTML = (plot.tags || []).map((tag) => `<span>${escapeHtml(tag)}</span>`).join("");
+  renderGallery(plot);
   ui.modalSections.innerHTML = (plot.sections || []).map((section, index) => `
     <section class="dossier-section">
       <span>${String(index + 1).padStart(2, "0")}</span>
@@ -250,7 +386,7 @@ function openPlot(id) {
   const activeLinks = (plot.links || []).filter((link) => link.url);
   ui.modalLinks.innerHTML = activeLinks.length
     ? activeLinks.map((link) => `<a href="${escapeHtml(link.url)}" target="_blank" rel="noreferrer">${escapeHtml(link.label)} ↗</a>`).join("")
-    : `<span>Đường dẫn trải nghiệm đang được niêm phong.</span>`;
+    : `<span>Link chatbot và mã lọ không nằm trong bản xuất Archive.</span>`;
 
   ui.modal.hidden = false;
   requestAnimationFrame(() => ui.modal.classList.add("is-open"));
@@ -260,6 +396,7 @@ function openPlot(id) {
 
 function closePlot() {
   if (ui.modal.hidden) return;
+  state.activePlotId = null;
   ui.modal.classList.remove("is-open");
   document.body.classList.remove("modal-open");
   window.setTimeout(() => { ui.modal.hidden = true; }, document.body.classList.contains("reduce-motion") ? 10 : 300);
@@ -268,7 +405,7 @@ function closePlot() {
 ui.enter.addEventListener("click", openGate);
 document.querySelectorAll("[id^='reduce-motion']").forEach((button) => button.addEventListener("click", toggleMotion));
 document.querySelectorAll(".archive-door").forEach((button) => button.addEventListener("click", () => selectType(button.dataset.type)));
-document.querySelectorAll(".dose-card").forEach((button) => button.addEventListener("click", () => selectRating(button.dataset.rating)));
+document.querySelectorAll(".access-card").forEach((button) => button.addEventListener("click", () => selectAccess(button.dataset.access)));
 document.querySelectorAll("[data-back]").forEach((button) => button.addEventListener("click", () => goBack(button.dataset.back)));
 
 ui.search.addEventListener("input", (event) => {
@@ -291,6 +428,13 @@ ui.plotGrid.addEventListener("click", (event) => {
 
 ui.modal.addEventListener("click", (event) => {
   if (event.target.closest("[data-close-modal]")) closePlot();
+});
+
+ui.modalGallery.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-gallery-src]");
+  if (!button) return;
+  setModalCoverImage(button.dataset.gallerySrc);
+  ui.modalGallery.querySelectorAll(".gallery-thumb").forEach((thumb) => thumb.classList.toggle("is-active", thumb === button));
 });
 
 document.addEventListener("keydown", (event) => {

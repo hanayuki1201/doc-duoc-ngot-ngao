@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0a0506">
   <meta name="description" content="Độc Dược Ngọt Ngào Plot Archive — kho lưu trữ plot và open world của Delicious Poison.">
-  <meta name="archive-build" content="v7-velvet-type">
+  <meta name="archive-build" content="v8-character-routes">
   <title>Độc Dược Ngọt Ngào Plot Archive | Delicious Poison</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=7">
+  <link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Tới nội dung chính</a>
@@ -79,9 +79,9 @@
             <button class="archive-door door-character" type="button" data-type="character">
               <span class="door-number">01</span>
               <span class="door-art" aria-hidden="true">🥀</span>
-              <span class="door-label">CHAR LẺ</span>
-              <span class="door-en">One-on-One Stories</span>
-              <span class="door-copy">Một nhân vật. Một mối quan hệ. Một cơn nghiện chỉ dành cho nàng.</span>
+              <span class="door-label">PLOT NHÂN VẬT</span>
+              <span class="door-en">Character-led Stories</span>
+              <span class="door-copy">Từ một nhân vật, nhiều tuyến nhân vật đến NP — mọi câu chuyện được dẫn dắt bởi những mối quan hệ.</span>
               <span class="door-cta">MỞ CÁNH CỬA <b>↗</b></span>
             </button>
 
@@ -96,22 +96,22 @@
           </div>
         </div>
 
-        <div id="rating-step" class="step-panel" hidden>
+        <div id="access-step" class="step-panel" hidden>
           <button class="text-back" type="button" data-back="type">← Quay lại chọn cánh cửa</button>
-          <div class="rating-grid">
-            <button class="dose-card dose-sfw" type="button" data-rating="sfw">
-              <span class="dose-mark">S</span>
-              <span class="dose-kicker">Sweet Dose</span>
-              <strong>SFW</strong>
-              <p>Dịu dàng, chữa lành, lãng mạn, phiêu lưu và những dư vị an toàn.</p>
-              <span class="dose-count" id="sfw-count">0 hồ sơ</span>
+          <div class="access-grid">
+            <button class="access-card access-first" type="button" data-access="first-taste">
+              <span class="access-mark">F</span>
+              <span class="access-kicker">Open Collection</span>
+              <strong>FIRST<br>TASTE</strong>
+              <p>Những liều đầu tiên đang mở trong khu vườn — đủ ngọt để bước vào, đủ độc để nhớ mãi.</p>
+              <span class="access-count" id="first-taste-count">0 hồ sơ</span>
             </button>
-            <button class="dose-card dose-nsfw" type="button" data-rating="nsfw">
-              <span class="dose-mark">N</span>
-              <span class="dose-kicker">Dark Dose</span>
-              <strong>NSFW <small>18+</small></strong>
-              <p>Những câu chuyện trưởng thành, đen tối và chứa nội dung nhạy cảm.</p>
-              <span class="dose-count" id="nsfw-count">0 hồ sơ</span>
+            <button class="access-card access-sealed" type="button" data-access="sealed-vial">
+              <span class="access-mark">V</span>
+              <span class="access-kicker">Rare Collection</span>
+              <strong>SEALED<br>VIAL</strong>
+              <p>Những lọ độc đặc biệt của Delicious Poison — hiếm hơn, sâu hơn và mang dấu ấn riêng.</p>
+              <span class="access-count" id="sealed-vial-count">0 hồ sơ</span>
             </button>
           </div>
         </div>
@@ -120,9 +120,9 @@
           <nav class="breadcrumbs" aria-label="Đường dẫn kho lưu trữ">
             <button type="button" data-back="type">Plot Archive</button>
             <span>/</span>
-            <button id="crumb-type" type="button" data-back="rating">Char lẻ</button>
+            <button id="crumb-type" type="button" data-back="access">Plot Nhân Vật</button>
             <span>/</span>
-            <strong id="crumb-rating">SFW</strong>
+            <strong id="crumb-access">First Taste</strong>
           </nav>
 
           <div class="catalog-toolbar">
@@ -165,19 +165,26 @@
       </div>
       <div class="dossier-body">
         <div class="dossier-meta">
-          <div><span>LIỀU</span><strong id="modal-rating"></strong></div>
-          <div><span>QUYỀN TRUY CẬP</span><strong id="modal-access"></strong></div>
+          <div><span>KHU VỰC</span><strong id="modal-access"></strong></div>
+          <div><span>DÒNG PLOT</span><strong id="modal-format"></strong></div>
           <div><span>TRẠNG THÁI</span><strong id="modal-status"></strong></div>
         </div>
         <div id="modal-tags" class="dossier-tags"></div>
         <p id="modal-summary" class="dossier-summary"></p>
+        <section id="modal-gallery-wrap" class="dossier-gallery" hidden>
+          <div class="dossier-gallery-heading">
+            <span>IMAGE ARCHIVE</span>
+            <strong id="modal-gallery-count"></strong>
+          </div>
+          <div id="modal-gallery" class="dossier-gallery-track"></div>
+        </section>
         <div id="modal-sections" class="dossier-sections"></div>
         <div id="modal-links" class="dossier-links"></div>
       </div>
     </article>
   </div>
 
-  <script src="plot-data.js?v=7"></script>
-  <script src="logic.js?v=7"></script>
+  <script src="plot-data.js?v=8"></script>
+  <script src="logic.js?v=8"></script>
 </body>
 </html>
