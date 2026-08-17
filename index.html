@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0a0506">
   <meta name="description" content="Độc Dược Ngọt Ngào Plot Archive — kho lưu trữ plot và open world của Delicious Poison.">
-  <meta name="archive-build" content="v10-export-only">
+  <meta name="archive-build" content="v12-prismatic-gallery">
   <title>Độc Dược Ngọt Ngào Plot Archive | Delicious Poison</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=10">
+  <link rel="stylesheet" href="style.css?v=12">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Tới nội dung chính</a>
@@ -22,7 +22,7 @@
 
   <section id="entry-gate" class="entry-gate" aria-labelledby="gate-title">
     <div class="light-fall light-fall-gate" aria-hidden="true"></div>
-    <div class="gate-brand">ĐỘC DƯỢC NGỌT NGÀO</div>
+    <div class="gate-brand"><span>ĐỘC DƯỢC</span><em>NGỌT NGÀO</em></div>
     <div class="gate-content">
       <div class="sigil" aria-hidden="true"><span class="poison-star">✦</span></div>
       <p class="gate-kicker">Delicious Poison</p>
@@ -40,7 +40,7 @@
       <a class="brand-lockup" href="#archive" aria-label="Độc Dược Ngọt Ngào Plot Archive">
         <span class="brand-orb" aria-hidden="true">✦</span>
         <span>
-          <strong>Độc Dược Ngọt Ngào</strong>
+          <strong><span class="brand-primary">Độc Dược</span> <em class="brand-secondary">Ngọt Ngào</em></strong>
           <small>Delicious Poison · Plot Archive</small>
         </span>
       </a>
@@ -54,7 +54,7 @@
       <section class="hero" id="archive">
         <div class="hero-copy">
           <p class="eyebrow"><span>Welcome, my dear</span> 🍷</p>
-          <h1>Độc Dược<br><em>Ngọt Ngào</em></h1>
+          <h1><span>Độc Dược</span><br><em>Ngọt Ngào</em></h1>
           <div class="archive-title-row">
             <span>DELICIOUS POISON</span>
             <strong>PLOT ARCHIVE</strong>
@@ -155,6 +155,9 @@
     <article class="plot-dossier">
       <button class="modal-close" type="button" aria-label="Đóng hồ sơ" data-close-modal>×</button>
       <div id="modal-cover" class="dossier-cover">
+        <button id="modal-cover-expand" class="cover-expand-trigger" type="button" aria-expanded="false" aria-controls="modal-image-expansion">
+          <span>⤢ XEM ẢNH ĐẦY ĐỦ</span>
+        </button>
         <div class="dossier-cover-overlay"></div>
         <div class="dossier-cover-copy">
           <span id="modal-origin"></span>
@@ -177,6 +180,11 @@
             <strong id="modal-gallery-count"></strong>
           </div>
           <div id="modal-gallery" class="dossier-gallery-track"></div>
+          <figure id="modal-image-expansion" class="dossier-image-expansion" hidden>
+            <button id="modal-expanded-close" class="expanded-image-close" type="button">THU GỌN ẢNH ↑</button>
+            <img id="modal-expanded-image" alt="" decoding="async">
+            <figcaption>Ảnh được hiển thị trọn khung — không phóng to, không cắt mất chi tiết.</figcaption>
+          </figure>
         </section>
         <div id="modal-sections" class="dossier-sections"></div>
         <div id="modal-links" class="dossier-links"></div>
@@ -184,8 +192,8 @@
     </article>
   </div>
 
-  <script src="plot-data.js?v=10"></script>
-  <script src="archive-content.js?v=10"></script>
-  <script src="logic.js?v=10"></script>
+  <script src="plot-data.js?v=12"></script>
+  <script src="archive-content.js?v=12"></script>
+  <script src="logic.js?v=12"></script>
 </body>
 </html>

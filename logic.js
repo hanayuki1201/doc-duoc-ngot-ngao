@@ -5,7 +5,8 @@ const state = {
   access: null,
   tag: "all",
   search: "",
-  activePlotId: null
+  activePlotId: null,
+  activeImageSource: ""
 };
 
 const ui = {
@@ -26,7 +27,9 @@ const ui = {
   plotGrid: document.getElementById("plot-grid"),
   emptyState: document.getElementById("empty-state"),
   modal: document.getElementById("plot-modal"),
+  modalDossier: document.querySelector(".plot-dossier"),
   modalCover: document.getElementById("modal-cover"),
+  modalCoverExpand: document.getElementById("modal-cover-expand"),
   modalOrigin: document.getElementById("modal-origin"),
   modalKind: document.getElementById("modal-kind"),
   modalTitle: document.getElementById("modal-title"),
@@ -39,6 +42,9 @@ const ui = {
   modalGalleryWrap: document.getElementById("modal-gallery-wrap"),
   modalGallery: document.getElementById("modal-gallery"),
   modalGalleryCount: document.getElementById("modal-gallery-count"),
+  modalImageExpansion: document.getElementById("modal-image-expansion"),
+  modalExpandedImage: document.getElementById("modal-expanded-image"),
+  modalExpandedClose: document.getElementById("modal-expanded-close"),
   modalSections: document.getElementById("modal-sections"),
   modalLinks: document.getElementById("modal-links")
 };
@@ -123,12 +129,21 @@ function inferPlotFormat(tags = []) {
   return "Solo Route";
 }
 
+function inferArchiveType(raw, tags = []) {
+  const normalized = tags.map((tag) => String(tag).toLocaleLowerCase("vi").replaceAll(" ", ""));
+  const hasCharacterDossier = Boolean(cleanArchiveText(raw.character_dossier));
+  const hasWorldDossier = Boolean(cleanArchiveText(raw.world_dossier));
+  const markedAsWorld = normalized.some((tag) => ["ow", "openworld", "worldbuilding"].includes(tag));
+  return markedAsWorld || (!hasCharacterDossier && hasWorldDossier) ? "world" : "character";
+}
+
 function makeImportedPlot(raw) {
   const accessTier = raw.khu_vuc === "Sealed Vial" ? "sealed-vial" : "first-taste";
   const access = labels[accessTier].name;
   const sourceTags = Array.isArray(raw.tags) ? raw.tags.map(cleanArchiveText).filter(Boolean) : [];
   const tags = [...new Set([...sourceTags, access])];
   const hasNsfwTag = sourceTags.some((tag) => tag.toLocaleLowerCase("vi") === "nsfw");
+  const type = inferArchiveType(raw, sourceTags);
   const sourceImages = Array.isArray(raw.anh) ? raw.anh.filter(Boolean) : [];
   const images = sourceImages.map(archiveAssetPath);
   const sections = [];
@@ -155,12 +170,12 @@ function makeImportedPlot(raw) {
     id: `import-${slug}`,
     origin: importedOrigins[raw.name] || "🥀",
     title: cleanArchiveText(raw.name),
-    type: "character",
+    type,
     accessTier,
     access,
-    format: inferPlotFormat(sourceTags),
+    format: type === "world" ? "World-led" : inferPlotFormat(sourceTags),
     contentRating: hasNsfwTag ? "NSFW" : "Unrated",
-    tone: accessTier === "sealed-vial" ? "blood" : hasNsfwTag ? "crimson" : sourceTags.includes("Fantasy") ? "dream" : "velvet",
+    tone: type === "world" ? "world" : accessTier === "sealed-vial" ? "blood" : hasNsfwTag ? "crimson" : sourceTags.includes("Fantasy") ? "dream" : "velvet",
     cover: images[0] || "",
     gallery: images.slice(1),
     status: raw.badge === "HOT" ? "Nổi bật" : raw.badge === "NEW" ? "Mới cập nhật" : cleanArchiveText(raw.badge) || "Đã lưu trữ",
@@ -251,6 +266,8 @@ function selectType(type) {
   state.tag = "all";
   state.search = "";
   ui.search.value = "";
+  document.body.classList.remove("theme-character", "theme-world");
+  document.body.classList.add(`theme-${type}`);
 
   const typeData = archiveData.filter((plot) => plot.type === type);
   const firstTaste = typeData.filter((plot) => plot.accessTier === "first-taste").length;
@@ -284,6 +301,7 @@ function goBack(destination) {
     state.access = null;
     ui.stepHeading.textContent = "Chọn cánh cửa";
     ui.stepDescription.textContent = "Mỗi cánh cửa dẫn tới một kiểu trải nghiệm khác nhau trong khu vườn.";
+    document.body.classList.remove("theme-character", "theme-world");
     setStep(ui.typeStep);
     return;
   }
@@ -313,7 +331,25 @@ function plotCoverStyle(plot) {
 
 function setModalCoverImage(source = "") {
   const safeSource = String(source).replaceAll("\\", "\\\\").replaceAll("'", "\\'");
+  state.activeImageSource = source;
   ui.modalCover.style.setProperty("--plot-image", source ? `url('${safeSource}')` : "none");
+  ui.modalCover.classList.toggle("has-image", Boolean(source));
+  ui.modalCoverExpand.disabled = !source;
+  ui.modalExpandedImage.src = source || "";
+  ui.modalExpandedImage.alt = source && state.activePlotId ? `Ảnh đầy đủ của ${ui.modalTitle.textContent}` : "";
+}
+
+function hideExpandedImage() {
+  ui.modalImageExpansion.hidden = true;
+  ui.modalCoverExpand.setAttribute("aria-expanded", "false");
+}
+
+function showExpandedImage(source = state.activeImageSource) {
+  if (!source) return;
+  setModalCoverImage(source);
+  ui.modalImageExpansion.hidden = false;
+  ui.modalCoverExpand.setAttribute("aria-expanded", "true");
+  requestAnimationFrame(() => ui.modalImageExpansion.scrollIntoView({ behavior: "smooth", block: "nearest" }));
 }
 
 function renderGallery(plot) {
@@ -336,7 +372,7 @@ function renderPlots() {
   });
 
   ui.plotGrid.innerHTML = results.map((plot, index) => `
-    <article class="plot-card tone-${escapeHtml(plot.tone || "velvet")}" data-plot-id="${escapeHtml(plot.id)}" style="--delay:${index * 70}ms">
+    <article class="plot-card type-${escapeHtml(plot.type)} tone-${escapeHtml(plot.tone || "velvet")}" data-plot-id="${escapeHtml(plot.id)}" style="--delay:${index * 70}ms">
       <button class="plot-card-button" type="button" aria-label="Mở hồ sơ ${escapeHtml(plot.title)}">
         <div class="plot-cover" ${plotCoverStyle(plot)}>
           <span class="plot-origin">${escapeHtml(plot.origin || "🥀")}</span>
@@ -365,13 +401,16 @@ function openPlot(id) {
   if (!plot) return;
 
   state.activePlotId = id;
+  hideExpandedImage();
 
   ui.modalCover.className = `dossier-cover tone-${plot.tone || "velvet"}`;
-  setModalCoverImage(plot.cover);
+  ui.modalDossier.classList.remove("type-character", "type-world");
+  ui.modalDossier.classList.add(`type-${plot.type}`);
   ui.modalOrigin.textContent = plot.origin || "🥀";
   ui.modalKind.textContent = `${labels[plot.type].kind} · ${plot.access}`;
   ui.modalTitle.textContent = plot.title;
   ui.modalHook.textContent = `“${plot.hook}”`;
+  setModalCoverImage(plot.cover);
   ui.modalAccess.textContent = plot.access || "First Taste";
   ui.modalFormat.textContent = plot.format || labels[plot.type].kind;
   ui.modalStatus.textContent = plot.status || "Đang cập nhật";
@@ -403,6 +442,8 @@ function openPlot(id) {
 function closePlot() {
   if (ui.modal.hidden) return;
   state.activePlotId = null;
+  state.activeImageSource = "";
+  hideExpandedImage();
   ui.modal.classList.remove("is-open");
   document.body.classList.remove("modal-open");
   window.setTimeout(() => { ui.modal.hidden = true; }, document.body.classList.contains("reduce-motion") ? 10 : 300);
@@ -439,10 +480,19 @@ ui.modal.addEventListener("click", (event) => {
 ui.modalGallery.addEventListener("click", (event) => {
   const button = event.target.closest("[data-gallery-src]");
   if (!button) return;
-  setModalCoverImage(button.dataset.gallerySrc);
+  showExpandedImage(button.dataset.gallerySrc);
   ui.modalGallery.querySelectorAll(".gallery-thumb").forEach((thumb) => thumb.classList.toggle("is-active", thumb === button));
 });
 
+ui.modalCoverExpand.addEventListener("click", () => showExpandedImage());
+ui.modalExpandedClose.addEventListener("click", hideExpandedImage);
+ui.modalExpandedImage.addEventListener("click", hideExpandedImage);
+
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") closePlot();
+  if (event.key !== "Escape") return;
+  if (!ui.modalImageExpansion.hidden) {
+    hideExpandedImage();
+    return;
+  }
+  closePlot();
 });
