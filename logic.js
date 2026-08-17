@@ -110,7 +110,10 @@ function firstMeaningfulLine(value = "") {
 }
 
 function archiveAssetPath(value = "") {
-  return `plot-assets/${String(value).replace(/^\/+/, "").replace(/\.png$/i, ".webp")}`;
+  const sourcePath = String(value).replace(/^\/+/, "");
+  const embeddedImage = window.plotArchiveImport?.images?.[sourcePath];
+  if (embeddedImage) return embeddedImage;
+  return `plot-assets/${sourcePath.replace(/\.png$/i, ".webp")}`;
 }
 
 function inferPlotFormat(tags = []) {
@@ -186,9 +189,12 @@ function normalizeExistingPlots() {
 async function loadImportedCharacters() {
   normalizeExistingPlots();
   try {
-    const response = await fetch("plot-assets/characters.json?v=8");
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const payload = await response.json();
+    let payload = window.plotArchiveImport?.payload;
+    if (!payload) {
+      const response = await fetch("plot-assets/characters.json?v=10");
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      payload = await response.json();
+    }
     const imported = Array.isArray(payload.characters) ? payload.characters.map(makeImportedPlot) : [];
     const knownIds = new Set(archiveData.map((plot) => plot.id));
     archiveData.push(...imported.filter((plot) => !knownIds.has(plot.id)));
