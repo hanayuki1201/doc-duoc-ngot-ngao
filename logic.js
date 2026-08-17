@@ -28,12 +28,10 @@ const ui = {
   emptyState: document.getElementById("empty-state"),
   modal: document.getElementById("plot-modal"),
   modalDossier: document.querySelector(".plot-dossier"),
-  modalCover: document.getElementById("modal-cover"),
-  modalCoverExpand: document.getElementById("modal-cover-expand"),
   modalOrigin: document.getElementById("modal-origin"),
   modalKind: document.getElementById("modal-kind"),
   modalTitle: document.getElementById("modal-title"),
-  modalHook: document.getElementById("modal-hook"),
+  modalPoisonHook: document.getElementById("modal-poison-hook"),
   modalAccess: document.getElementById("modal-access"),
   modalFormat: document.getElementById("modal-format"),
   modalStatus: document.getElementById("modal-status"),
@@ -329,26 +327,20 @@ function plotCoverStyle(plot) {
   return plot.cover ? `style="--plot-image:url('${escapeHtml(plot.cover)}')"` : "";
 }
 
-function setModalCoverImage(source = "") {
-  const safeSource = String(source).replaceAll("\\", "\\\\").replaceAll("'", "\\'");
+function setExpandedImageSource(source = "") {
   state.activeImageSource = source;
-  ui.modalCover.style.setProperty("--plot-image", source ? `url('${safeSource}')` : "none");
-  ui.modalCover.classList.toggle("has-image", Boolean(source));
-  ui.modalCoverExpand.disabled = !source;
   ui.modalExpandedImage.src = source || "";
   ui.modalExpandedImage.alt = source && state.activePlotId ? `Ảnh đầy đủ của ${ui.modalTitle.textContent}` : "";
 }
 
 function hideExpandedImage() {
   ui.modalImageExpansion.hidden = true;
-  ui.modalCoverExpand.setAttribute("aria-expanded", "false");
 }
 
 function showExpandedImage(source = state.activeImageSource) {
   if (!source) return;
-  setModalCoverImage(source);
+  setExpandedImageSource(source);
   ui.modalImageExpansion.hidden = false;
-  ui.modalCoverExpand.setAttribute("aria-expanded", "true");
   requestAnimationFrame(() => ui.modalImageExpansion.scrollIntoView({ behavior: "smooth", block: "nearest" }));
 }
 
@@ -372,7 +364,7 @@ function renderPlots() {
   });
 
   ui.plotGrid.innerHTML = results.map((plot, index) => `
-    <article class="plot-card type-${escapeHtml(plot.type)} tone-${escapeHtml(plot.tone || "velvet")}" data-plot-id="${escapeHtml(plot.id)}" style="--delay:${index * 70}ms">
+    <article class="plot-card type-${escapeHtml(plot.type)} access-${escapeHtml(plot.accessTier || "first-taste")} tone-${escapeHtml(plot.tone || "velvet")}" data-plot-id="${escapeHtml(plot.id)}" style="--delay:${index * 70}ms">
       <button class="plot-card-button" type="button" aria-label="Mở hồ sơ ${escapeHtml(plot.title)}">
         <div class="plot-cover" ${plotCoverStyle(plot)}>
           <span class="plot-origin">${escapeHtml(plot.origin || "🥀")}</span>
@@ -403,24 +395,26 @@ function openPlot(id) {
   state.activePlotId = id;
   hideExpandedImage();
 
-  ui.modalCover.className = `dossier-cover tone-${plot.tone || "velvet"}`;
-  ui.modalDossier.classList.remove("type-character", "type-world");
-  ui.modalDossier.classList.add(`type-${plot.type}`);
+  ui.modalDossier.classList.remove("type-character", "type-world", "access-first-taste", "access-sealed-vial");
+  ui.modalDossier.classList.add(`type-${plot.type}`, `access-${plot.accessTier || "first-taste"}`);
   ui.modalOrigin.textContent = plot.origin || "🥀";
   ui.modalKind.textContent = `${labels[plot.type].kind} · ${plot.access}`;
   ui.modalTitle.textContent = plot.title;
-  ui.modalHook.textContent = `“${plot.hook}”`;
-  setModalCoverImage(plot.cover);
+  const poisonHookSection = (plot.sections || []).find((section) => String(section.label).trim().toLocaleLowerCase("vi") === "poison hook");
+  const firstSipSection = (plot.sections || []).find((section) => String(section.label).trim().toLocaleLowerCase("vi") === "first sip");
+  ui.modalPoisonHook.textContent = poisonHookSection?.content || plot.hook || "Hồ sơ chưa có Poison Hook.";
+  setExpandedImageSource(plot.cover);
   ui.modalAccess.textContent = plot.access || "First Taste";
   ui.modalFormat.textContent = plot.format || labels[plot.type].kind;
   ui.modalStatus.textContent = plot.status || "Đang cập nhật";
-  ui.modalSummary.textContent = plot.summary || "Hồ sơ đang được cập nhật.";
+  ui.modalSummary.textContent = firstSipSection?.content || plot.summary || "Hồ sơ đang được cập nhật.";
 
   ui.modalTags.innerHTML = (plot.tags || []).map((tag) => `<span>${escapeHtml(tag)}</span>`).join("");
   renderGallery(plot);
-  ui.modalSections.innerHTML = (plot.sections || []).map((section, index) => `
+  const remainingSections = (plot.sections || []).filter((section) => section !== poisonHookSection && section !== firstSipSection);
+  ui.modalSections.innerHTML = remainingSections.map((section, index) => `
     <section class="dossier-section">
-      <span>${String(index + 1).padStart(2, "0")}</span>
+      <span>${String(index + 3).padStart(2, "0")}</span>
       <div>
         <h3>${escapeHtml(section.label)}</h3>
         <p>${escapeHtml(section.content)}</p>
@@ -484,7 +478,6 @@ ui.modalGallery.addEventListener("click", (event) => {
   ui.modalGallery.querySelectorAll(".gallery-thumb").forEach((thumb) => thumb.classList.toggle("is-active", thumb === button));
 });
 
-ui.modalCoverExpand.addEventListener("click", () => showExpandedImage());
 ui.modalExpandedClose.addEventListener("click", hideExpandedImage);
 ui.modalExpandedImage.addEventListener("click", hideExpandedImage);
 

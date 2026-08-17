@@ -322,6 +322,138 @@ footer p{font-size:.64rem;color:var(--dust)}
   .dossier-image-expansion figcaption{padding-inline:8px;font-size:.68rem}
 }
 
+/* V13 — Centered dossier + hai hệ neon theo cấp lưu trữ */
+:root{
+  --first-neon:#ff4963;
+  --first-glow:rgba(255,73,99,.42);
+  --sealed-neon:#e0bd7a;
+  --sealed-glow:rgba(224,189,122,.4);
+}
+
+/* First Taste và Sealed Vial có ánh neon riêng, độc lập với màu Character / Open World */
+.access-card{
+  --access-neon:var(--first-neon);
+  --access-glow:var(--first-glow);
+  border-color:color-mix(in srgb,var(--access-neon) 24%,transparent);
+  box-shadow:inset 0 0 34px color-mix(in srgb,var(--access-glow) 24%,transparent);
+}
+.access-first{--access-neon:var(--first-neon);--access-glow:var(--first-glow)}
+.access-sealed{--access-neon:var(--sealed-neon);--access-glow:var(--sealed-glow)}
+.access-first::before{
+  background:radial-gradient(circle at 80% 15%,rgba(255,73,99,.27),transparent 34%),linear-gradient(135deg,rgba(122,18,32,.2),transparent 62%);
+}
+.access-sealed::before{
+  background:radial-gradient(circle at 80% 15%,rgba(224,189,122,.26),transparent 34%),linear-gradient(135deg,rgba(111,72,31,.2),transparent 62%);
+}
+.theme-world .access-first::before{
+  background:radial-gradient(circle at 80% 15%,rgba(255,73,99,.23),transparent 32%),radial-gradient(circle at 18% 78%,rgba(169,109,255,.22),transparent 38%),linear-gradient(135deg,rgba(47,23,68,.28),transparent 66%);
+}
+.theme-world .access-sealed::before{
+  background:radial-gradient(circle at 80% 15%,rgba(224,189,122,.27),transparent 33%),radial-gradient(circle at 18% 78%,rgba(169,109,255,.2),transparent 38%),linear-gradient(135deg,rgba(47,23,68,.28),transparent 66%);
+}
+.access-card::after{
+  position:absolute;
+  right:10%;
+  bottom:0;
+  left:10%;
+  height:1px;
+  content:"";
+  background:linear-gradient(90deg,transparent,var(--access-neon),transparent);
+  box-shadow:0 0 16px var(--access-neon);
+  opacity:.7;
+  transition:.35s ease;
+}
+.access-card:hover,.access-card:focus-visible{
+  border-color:var(--access-neon);
+  box-shadow:var(--shadow),0 0 0 1px var(--access-neon),0 0 34px var(--access-glow),inset 0 0 42px color-mix(in srgb,var(--access-glow) 38%,transparent);
+}
+.access-card:hover::after,.access-card:focus-visible::after{right:2%;left:2%;opacity:1}
+.access-card .access-kicker{color:var(--access-neon);text-shadow:0 0 15px var(--access-glow)}
+.access-card .access-count{border-color:color-mix(in srgb,var(--access-neon) 52%,transparent);color:var(--access-neon);box-shadow:0 0 13px color-mix(in srgb,var(--access-glow) 55%,transparent)}
+.access-first .access-mark{color:rgba(255,73,99,.06);text-shadow:0 0 34px rgba(255,73,99,.14)}
+.access-sealed .access-mark{color:rgba(224,189,122,.065);text-shadow:0 0 34px rgba(224,189,122,.15)}
+
+/* Card vẫn nhận màu loại plot ở metadata; vòng neon thể hiện cấp First Taste / Sealed Vial */
+.plot-card{--tier-neon:var(--first-neon);--tier-glow:var(--first-glow)}
+.plot-card.access-first-taste{--tier-neon:var(--first-neon);--tier-glow:var(--first-glow)}
+.plot-card.access-sealed-vial{--tier-neon:var(--sealed-neon);--tier-glow:var(--sealed-glow)}
+.plot-card:hover{
+  border-color:var(--tier-neon);
+  box-shadow:0 25px 65px rgba(0,0,0,.52),0 0 0 1px var(--tier-neon),0 0 29px var(--tier-glow);
+}
+.plot-card-button:focus-visible{outline-color:var(--tier-neon)}
+.plot-card .plot-access{border-color:color-mix(in srgb,var(--tier-neon) 52%,transparent);color:var(--tier-neon);box-shadow:0 0 12px color-mix(in srgb,var(--tier-glow) 55%,transparent)}
+.plot-card.access-sealed-vial .open-dossier b{color:var(--sealed-neon)}
+
+/* Dossier không còn cột cover: toàn bộ thông tin nằm trong một trục giữa rộng, dễ đọc */
+.plot-dossier{
+  --type-accent:var(--character-neon);
+  --tier-neon:var(--first-neon);
+  --tier-glow:var(--first-glow);
+  display:block;
+  width:min(1240px,calc(100vw - clamp(24px,6vw,84px)));
+  max-height:92vh;
+  overflow-x:hidden;
+  overflow-y:auto;
+  border-color:color-mix(in srgb,var(--tier-neon) 42%,transparent);
+  background:radial-gradient(circle at 50% 0,color-mix(in srgb,var(--tier-glow) 25%,transparent),transparent 30%),linear-gradient(145deg,#16090d,#090507 72%);
+  box-shadow:var(--shadow),0 0 0 1px color-mix(in srgb,var(--tier-neon) 18%,transparent),0 0 42px color-mix(in srgb,var(--tier-glow) 58%,transparent);
+}
+.plot-dossier.type-world{
+  --type-accent:var(--world-neon);
+  background:radial-gradient(circle at 50% 0,color-mix(in srgb,var(--tier-glow) 22%,transparent),transparent 30%),radial-gradient(circle at 92% 64%,rgba(169,109,255,.12),transparent 32%),linear-gradient(145deg,#160c20,#08050c 72%);
+}
+.plot-dossier.access-first-taste{--tier-neon:var(--first-neon);--tier-glow:var(--first-glow)}
+.plot-dossier.access-sealed-vial{--tier-neon:var(--sealed-neon);--tier-glow:var(--sealed-glow)}
+.plot-dossier .dossier-body{
+  width:min(1040px,100%);
+  min-width:0;
+  margin:0 auto;
+  padding:clamp(54px,6vw,82px) clamp(28px,6vw,76px) clamp(48px,6vw,72px);
+}
+.dossier-heading{position:relative;margin:0 0 34px;padding:0 0 clamp(31px,4vw,46px);border-bottom:1px solid color-mix(in srgb,var(--tier-neon) 22%,transparent);text-align:center}
+.dossier-heading::after{position:absolute;right:22%;bottom:-1px;left:22%;height:1px;content:"";background:linear-gradient(90deg,transparent,var(--tier-neon),transparent);box-shadow:0 0 17px var(--tier-neon)}
+.dossier-identity{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:20px}
+.dossier-identity>span{display:grid;width:42px;height:42px;flex:0 0 auto;place-items:center;border:1px solid color-mix(in srgb,var(--type-accent) 48%,transparent);border-radius:50%;background:rgba(8,3,5,.68);box-shadow:0 0 15px color-mix(in srgb,var(--type-accent) 30%,transparent)}
+.dossier-identity p{margin:0;color:var(--type-accent);font-size:.72rem;font-weight:600;letter-spacing:.17em;text-transform:uppercase;text-shadow:0 0 14px color-mix(in srgb,var(--type-accent) 55%,transparent)}
+.dossier-heading h2{overflow-wrap:anywhere;max-width:900px;margin:0 auto;color:#fff9f5;font-family:var(--serif);font-size:clamp(3.2rem,7vw,6.6rem);font-weight:400;line-height:.88;letter-spacing:-.055em;text-wrap:balance;text-shadow:0 13px 38px rgba(0,0,0,.58)}
+.dossier-poison-hook{display:grid;grid-template-columns:54px minmax(0,1fr);gap:20px;max-width:900px;margin:clamp(30px,4vw,46px) auto 0;padding:clamp(22px,3vw,31px);border:1px solid color-mix(in srgb,var(--tier-neon) 32%,transparent);background:linear-gradient(135deg,color-mix(in srgb,var(--tier-neon) 10%,transparent),rgba(7,4,7,.48));box-shadow:inset 3px 0 0 var(--tier-neon),0 16px 36px rgba(0,0,0,.22);text-align:left}
+.dossier-poison-index{color:var(--tier-neon);font-family:var(--serif);font-size:1rem;font-style:italic;text-shadow:0 0 14px var(--tier-glow)}
+.dossier-poison-hook div>p:first-child{margin:0 0 9px;color:var(--tier-neon);font-family:var(--serif);font-size:1.45rem;font-weight:600;letter-spacing:.04em}
+#modal-poison-hook{margin:0;color:var(--ivory);font-size:1.02rem;line-height:1.85;white-space:pre-line}
+.plot-dossier .dossier-meta{margin-bottom:18px}
+.plot-dossier .dossier-meta>div{border-color:color-mix(in srgb,var(--tier-neon) 18%,transparent);background:rgba(8,4,7,.52)}
+.plot-dossier .dossier-meta span{color:var(--tier-neon)}
+.plot-dossier .dossier-tags{justify-content:center;margin-bottom:28px}
+.plot-dossier .dossier-tags span{border-color:color-mix(in srgb,var(--tier-neon) 34%,transparent);background:color-mix(in srgb,var(--tier-neon) 9%,transparent)}
+.plot-dossier .dossier-summary{position:relative;margin-bottom:36px;padding:37px clamp(12px,4vw,48px) 32px;color:var(--ivory);text-align:center}
+.plot-dossier .dossier-summary::before{position:absolute;top:0;left:50%;content:"02 · FIRST SIP";color:var(--type-accent);font-family:var(--sans);font-size:.68rem;font-style:normal;font-weight:600;letter-spacing:.2em;transform:translateX(-50%)}
+.plot-dossier .dossier-gallery-heading span,.plot-dossier .dossier-section>span{color:var(--tier-neon)}
+.plot-dossier .gallery-thumb:hover,.plot-dossier .gallery-thumb:focus-visible,.plot-dossier .gallery-thumb.is-active{border-color:var(--tier-neon);box-shadow:0 0 0 2px color-mix(in srgb,var(--tier-neon) 20%,transparent),0 0 18px var(--tier-glow)}
+.plot-dossier .gallery-thumb.is-active::after{background:var(--tier-neon);box-shadow:0 0 11px var(--tier-neon)}
+.plot-dossier .dossier-image-expansion{border-color:color-mix(in srgb,var(--tier-neon) 48%,transparent);background:radial-gradient(circle at 50% 12%,color-mix(in srgb,var(--tier-glow) 82%,transparent),transparent 36%),#070408;box-shadow:0 18px 55px rgba(0,0,0,.48),0 0 24px color-mix(in srgb,var(--tier-glow) 80%,transparent)}
+.plot-dossier .dossier-section{grid-template-columns:48px minmax(0,1fr);gap:20px;padding:clamp(25px,3vw,35px) 0}
+.plot-dossier .dossier-section h3{font-size:clamp(1.35rem,2.4vw,1.75rem)}
+.plot-dossier .dossier-section p{font-size:1rem;line-height:1.82}
+.plot-dossier .dossier-links{justify-content:center}
+
+@media(max-width:700px){
+  .plot-dossier{display:block;width:100%;max-height:100dvh;border:0;border-radius:0}
+  .plot-dossier .dossier-body{width:100%;padding:62px 18px max(38px,env(safe-area-inset-bottom))}
+  .dossier-heading{margin-bottom:27px;padding-bottom:31px}
+  .dossier-heading h2{font-size:clamp(3rem,15vw,5.2rem)}
+  .dossier-identity{align-items:flex-start;gap:10px;margin-bottom:17px}
+  .dossier-identity p{max-width:75%;padding-top:9px;font-size:.62rem;line-height:1.5}
+  .dossier-poison-hook{grid-template-columns:35px minmax(0,1fr);gap:11px;margin-top:29px;padding:20px 16px}
+  .dossier-poison-hook div>p:first-child{font-size:1.25rem}
+  #modal-poison-hook{font-size:.94rem;line-height:1.75}
+  .plot-dossier .dossier-tags{justify-content:flex-start}
+  .plot-dossier .dossier-summary{padding-inline:5px;text-align:left}
+  .plot-dossier .dossier-summary::before{left:0;transform:none}
+  .plot-dossier .dossier-section{grid-template-columns:32px minmax(0,1fr);gap:10px}
+  .plot-dossier .dossier-section p{font-size:.94rem}
+}
+
 .reduce-motion *,
 .reduce-motion *::before,
 .reduce-motion *::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
