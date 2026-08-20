@@ -1,3 +1,27 @@
+const archiveBuild = document.querySelector('meta[name="archive-build"]')?.content || "";
+
+async function refreshStaleArchive() {
+  try {
+    const response = await fetch(`version.json?time=${Date.now()}`, { cache: "no-store" });
+    if (!response.ok) return;
+    const latestBuild = String((await response.json()).build || "").trim();
+    if (!latestBuild || latestBuild === archiveBuild) return;
+
+    const refreshKey = `archive-refresh-${latestBuild}`;
+    if (sessionStorage.getItem(refreshKey)) return;
+    sessionStorage.setItem(refreshKey, "1");
+
+    const freshUrl = new URL(window.location.href);
+    freshUrl.searchParams.set("build", latestBuild);
+    freshUrl.searchParams.set("refresh", Date.now().toString());
+    window.location.replace(freshUrl.toString());
+  } catch (error) {
+    console.warn("Không thể kiểm tra phiên bản Archive mới nhất:", error);
+  }
+}
+
+refreshStaleArchive();
+
 let archiveData = Array.isArray(window.plotArchiveData) ? [...window.plotArchiveData] : [];
 
 const state = {
@@ -474,18 +498,19 @@ ui.plotGrid.addEventListener("click", (event) => {
 
 ui.modal.addEventListener("click", (event) => {
   if (event.target.closest("[data-close-modal]")) closePlot();
+  const summary = event.target.closest(".dossier-accordion > summary");
+  if (!summary) return;
+  const selectedItem = summary.parentElement;
+  if (selectedItem.open) return;
+  ui.modal.querySelectorAll(".dossier-accordion[open]").forEach((item) => {
+    if (item !== selectedItem) item.open = false;
+  });
 });
 
 ui.modal.addEventListener("toggle", (event) => {
   const activeItem = event.target;
   if (!(activeItem instanceof HTMLDetailsElement) || !activeItem.classList.contains("dossier-accordion")) return;
-  if (!activeItem.open) {
-    if (activeItem === ui.modalGalleryWrap) hideExpandedImage();
-    return;
-  }
-  ui.modal.querySelectorAll(".dossier-accordion[open]").forEach((item) => {
-    if (item !== activeItem) item.open = false;
-  });
+  if (!activeItem.open && activeItem === ui.modalGalleryWrap) hideExpandedImage();
 }, true);
 
 ui.modalGallery.addEventListener("click", (event) => {
