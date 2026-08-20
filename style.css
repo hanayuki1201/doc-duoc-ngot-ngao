@@ -518,44 +518,22 @@ footer p{font-size:.64rem;color:var(--dust)}
   .plot-dossier .dossier-summary,.plot-dossier .dossier-section p{font-size:.94rem;line-height:1.78}
 }
 
-/* V16 — Brand logo: hòa nền đen, nổi chữ hồng kim loại */
-.gate-logo,
+/* V17 — Logo chỉ xuất hiện ở nhận diện phụ, không chen vào entry gate */
 .brand-logo{
   display:block;
   object-fit:contain;
   mix-blend-mode:screen;
   -webkit-mask-image:radial-gradient(circle,#000 58%,rgba(0,0,0,.94) 68%,transparent 78%);
   mask-image:radial-gradient(circle,#000 58%,rgba(0,0,0,.94) 68%,transparent 78%);
-}
-.gate-logo{
-  width:clamp(220px,34vw,370px);
-  aspect-ratio:1;
-  margin:-30px auto -24px;
-  filter:drop-shadow(0 0 18px rgba(255,73,163,.3)) drop-shadow(0 0 42px rgba(122,18,82,.2));
-  animation:logoBreath 4.8s ease-in-out infinite;
-}
-.gate-logo+.gate-kicker{margin-top:0;color:var(--bronze-bright);text-shadow:0 0 13px rgba(224,189,122,.24)}
-.brand-logo{
   width:46px;
   height:46px;
   flex:0 0 46px;
   margin:-5px -2px -5px -5px;
   filter:drop-shadow(0 0 9px rgba(255,73,163,.32));
 }
-@keyframes logoBreath{
-  0%,100%{filter:drop-shadow(0 0 16px rgba(255,73,163,.26)) drop-shadow(0 0 38px rgba(122,18,82,.16));transform:scale(.99)}
-  50%{filter:drop-shadow(0 0 24px rgba(255,73,163,.4)) drop-shadow(0 0 54px rgba(122,18,82,.25));transform:scale(1.012)}
-}
 
 @media(max-width:700px){
-  .gate-logo{width:clamp(190px,61vw,260px);margin:-18px auto -17px}
   .brand-logo{width:40px;height:40px;flex-basis:40px;margin-left:-3px}
-}
-
-@media(max-height:720px){
-  .gate-logo{width:clamp(175px,34vh,245px);margin:-12px auto -16px}
-  .gate-copy{margin-block:18px 23px}
-  .master-slogan{margin-top:24px}
 }
 
 .reduce-motion *,
