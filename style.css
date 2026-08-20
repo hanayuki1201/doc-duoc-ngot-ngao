@@ -454,6 +454,70 @@ footer p{font-size:.64rem;color:var(--dust)}
   .plot-dossier .dossier-section p{font-size:.94rem}
 }
 
+/* V14 — Accordion dossier: chỉ sổ nội dung khi người xem chủ động mở */
+.plot-dossier .dossier-summary{position:static;margin:0;padding:0;border:0;color:var(--ivory);font-size:1rem;font-style:normal;line-height:1.82;text-align:left;white-space:pre-line}
+.plot-dossier .dossier-summary::before{content:none!important}
+.dossier-accordion,
+.plot-dossier .dossier-section,
+.plot-dossier .dossier-gallery{
+  display:block;
+  margin:0;
+  padding:0;
+  border:0;
+  border-bottom:1px solid color-mix(in srgb,var(--tier-neon) 17%,transparent);
+  background:transparent;
+}
+.dossier-accordion:first-of-type{border-top:1px solid color-mix(in srgb,var(--tier-neon) 17%,transparent)}
+.dossier-accordion>summary{
+  display:grid;
+  grid-template-columns:48px minmax(0,1fr) auto;
+  gap:18px;
+  align-items:center;
+  min-height:92px;
+  padding:20px 8px;
+  outline:none;
+  color:var(--ivory);
+  cursor:pointer;
+  list-style:none;
+  transition:background .25s ease,color .25s ease,padding .25s ease;
+}
+.dossier-accordion>summary::-webkit-details-marker{display:none}
+.dossier-accordion>summary::marker{display:none;content:""}
+.dossier-accordion>summary:hover,
+.dossier-accordion>summary:focus-visible{
+  padding-inline:16px;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--tier-neon) 11%,transparent),transparent 78%);
+}
+.dossier-accordion>summary:focus-visible{box-shadow:inset 3px 0 0 var(--tier-neon)}
+.accordion-index{color:var(--tier-neon);font-family:var(--serif);font-size:.86rem;font-style:italic;text-shadow:0 0 14px var(--tier-glow)}
+.accordion-label{display:flex;min-width:0;flex-direction:column;gap:4px}
+.accordion-label small{color:var(--type-accent);font-size:.58rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase}
+.accordion-label strong{overflow-wrap:anywhere;color:var(--ivory);font-family:var(--serif);font-size:clamp(1.35rem,2.4vw,1.78rem);font-weight:400;line-height:1.2}
+.accordion-toggle{display:grid;width:32px;height:32px;place-items:center;border:1px solid color-mix(in srgb,var(--tier-neon) 30%,transparent);border-radius:50%;color:var(--tier-neon);font-family:Arial,sans-serif;font-size:1.05rem;font-style:normal;font-weight:400;line-height:1;box-shadow:0 0 12px color-mix(in srgb,var(--tier-glow) 28%,transparent);transition:.28s ease}
+.accordion-side{display:flex;align-items:center;gap:13px}
+.accordion-side em{color:var(--dust);font-size:.7rem;font-style:normal;white-space:nowrap}
+.dossier-accordion[open]>summary{background:linear-gradient(90deg,color-mix(in srgb,var(--tier-neon) 13%,transparent),transparent 82%);box-shadow:inset 3px 0 0 var(--tier-neon)}
+.dossier-accordion[open]>summary .accordion-toggle{color:#090506;background:var(--tier-neon);box-shadow:0 0 20px var(--tier-glow);transform:rotate(45deg)}
+.dossier-accordion-panel{padding:0 8px 34px 74px;animation:accordionReveal .34s ease both}
+.dossier-gallery-panel{padding-right:8px;padding-left:8px}
+.plot-dossier .dossier-section p{margin:0;color:var(--ivory);font-size:1rem;line-height:1.82;white-space:pre-line}
+.plot-dossier .dossier-gallery-track{margin-top:3px}
+.plot-dossier .dossier-image-expansion{margin-bottom:0}
+@keyframes accordionReveal{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+
+@media(max-width:700px){
+  .dossier-accordion>summary{grid-template-columns:34px minmax(0,1fr) auto;gap:10px;min-height:78px;padding:16px 3px}
+  .dossier-accordion>summary:hover,.dossier-accordion>summary:focus-visible{padding-inline:8px}
+  .accordion-label small{font-size:.52rem;letter-spacing:.13em}
+  .accordion-label strong{font-size:1.25rem}
+  .accordion-toggle{width:29px;height:29px;font-size:.96rem}
+  .accordion-side{gap:7px}
+  .accordion-side em{display:none}
+  .dossier-accordion-panel{padding:0 4px 27px 44px}
+  .dossier-gallery-panel{padding-right:0;padding-left:0}
+  .plot-dossier .dossier-summary,.plot-dossier .dossier-section p{font-size:.94rem;line-height:1.78}
+}
+
 .reduce-motion *,
 .reduce-motion *::before,
 .reduce-motion *::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}

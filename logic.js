@@ -413,14 +413,19 @@ function openPlot(id) {
   renderGallery(plot);
   const remainingSections = (plot.sections || []).filter((section) => section !== poisonHookSection && section !== firstSipSection);
   ui.modalSections.innerHTML = remainingSections.map((section, index) => `
-    <section class="dossier-section">
-      <span>${String(index + 3).padStart(2, "0")}</span>
-      <div>
-        <h3>${escapeHtml(section.label)}</h3>
+    <details class="dossier-section dossier-accordion">
+      <summary>
+        <span class="accordion-index">${String(index + 3).padStart(2, "0")}</span>
+        <span class="accordion-label"><small>ARCHIVE SECTION</small><strong>${escapeHtml(section.label)}</strong></span>
+        <span class="accordion-toggle" aria-hidden="true">＋</span>
+      </summary>
+      <div class="dossier-accordion-panel">
         <p>${escapeHtml(section.content)}</p>
       </div>
-    </section>
+    </details>
   `).join("");
+
+  ui.modal.querySelectorAll(".dossier-accordion[open]").forEach((item) => { item.open = false; });
 
   const activeLinks = (plot.links || []).filter((link) => link.url);
   ui.modalLinks.innerHTML = activeLinks.length
@@ -470,6 +475,18 @@ ui.plotGrid.addEventListener("click", (event) => {
 ui.modal.addEventListener("click", (event) => {
   if (event.target.closest("[data-close-modal]")) closePlot();
 });
+
+ui.modal.addEventListener("toggle", (event) => {
+  const activeItem = event.target;
+  if (!(activeItem instanceof HTMLDetailsElement) || !activeItem.classList.contains("dossier-accordion")) return;
+  if (!activeItem.open) {
+    if (activeItem === ui.modalGalleryWrap) hideExpandedImage();
+    return;
+  }
+  ui.modal.querySelectorAll(".dossier-accordion[open]").forEach((item) => {
+    if (item !== activeItem) item.open = false;
+  });
+}, true);
 
 ui.modalGallery.addEventListener("click", (event) => {
   const button = event.target.closest("[data-gallery-src]");
